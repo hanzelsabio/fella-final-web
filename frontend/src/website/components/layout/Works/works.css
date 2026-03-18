@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* .our_works_section {
+  background-image: url("/src//assets/images/fella-bg.JPG");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+} */
+
+/* Hide scrollbars */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

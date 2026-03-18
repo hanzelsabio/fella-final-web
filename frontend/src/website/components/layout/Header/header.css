@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+.header_section {
+  background-image: url("/src/assets/images/fella-bg.JPG");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+}
+
+.sidebar_body {
+  background-image: url("/src/assets/images/fella-bg.JPG");
+  background-position: center;
+  background-size: cover;
+}

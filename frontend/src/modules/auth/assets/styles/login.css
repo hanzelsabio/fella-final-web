@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+.login_form {
+  background-image: url("/src/assets/images/fella-bg.JPG");
+  background-position: center;
+  background-size: cover;
+}
+
+.login_section {
+  background-image: url("/src/assets/images/fella-banner-1.jpg");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+}

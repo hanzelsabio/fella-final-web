@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+.inquiry_section,
+.inquiry_page_section {
+  background-image: url("/src/assets/images/fella-bg.JPG");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+}

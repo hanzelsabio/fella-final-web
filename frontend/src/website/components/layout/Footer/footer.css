@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* Footer Section */
+
+footer {
+  font-size: 13px;
+}
+
+footer a {
+  color: #df1529;
+}

@@ -1,0 +1,53 @@
+@import "tailwindcss";
+:root {
+  background-color: #000000;
+}
+
+/* Smooth scroll */
+:root {
+  scroll-behavior: smooth;
+}
+
+/* main background */
+.main_background {
+  /* background-image: url("/src/assets/images/fella-bg.JPG"); */
+  background-position: center;
+  background-size: cover;
+  position: relative;
+}
+
+.not_found {
+  background-image: url("/src/assets/images/fella-bg.JPG");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+}
+
+/* Announcement Section */
+
+/* .announcement_section {
+  text-transform: uppercase;
+} */
+
+.services_section {
+  background-image: url("/src/assets/images/fella-bg.JPG");
+  background-position: center;
+  background-size: cover;
+}
+
+.hero_section {
+  background-image: url("/src/assets/images/fella-bg.JPG");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+}
+
+/* Footer Section */
+
+footer {
+  font-size: 13px;
+}
+
+footer a {
+  color: #df1529;
+}

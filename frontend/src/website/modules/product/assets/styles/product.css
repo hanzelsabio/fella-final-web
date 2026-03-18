@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+.product_section,
+.collection_section {
+  /* background-image: linear-gradient(to right, #f8f8f8, #e0e0e0); */
+  color: black;
+  background-image: url("/src/assets/images/fella-bg.JPG");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+}
