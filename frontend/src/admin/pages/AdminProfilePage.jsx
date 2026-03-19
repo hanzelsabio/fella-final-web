@@ -142,212 +142,214 @@ const AdminProfilePage = () => {
     <div className="pb-6">
       <Breadcrumb title="Profile" />
 
-      {/* Profile Info */}
-      <div className="border border-gray-200 rounded-lg bg-white p-6 mb-4">
-        <h2 className="text-md font-bold mb-1">Profile Information</h2>
-        <p className="text-xs text-gray-500 mb-6">
-          Update your personal details and profile photo.
-        </p>
-
-        {message && (
-          <p
-            className={`text-xs mb-4 font-medium ${message.type === "success" ? "text-green-600" : "text-red-500"}`}
-          >
-            {message.text}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Profile Info */}
+        <div className="border border-gray-200 rounded-lg bg-white p-6">
+          <h2 className="text-md font-bold mb-1">Profile Information</h2>
+          <p className="text-xs text-gray-500 mb-6">
+            Update your personal details and profile photo.
           </p>
-        )}
 
-        {/* Avatar */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative">
-            <img
-              src={image?.preview || getImageUrl(admin?.image)}
-              alt="Profile"
-              className="w-20 h-20 rounded-full object-cover border"
-            />
-            {image && (
-              <button
-                onClick={() => setImage(null)}
-                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
-          </div>
-          <div>
-            <button
-              onClick={() => imageInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-md text-xs text-gray-500 hover:border-gray-400 hover:bg-gray-50"
+          {message && (
+            <p
+              className={`text-xs mb-4 font-medium ${message.type === "success" ? "text-green-600" : "text-red-500"}`}
             >
-              <ImagePlus className="w-4 h-4" />
-              <span>{image ? "Change photo" : "Upload photo"}</span>
+              {message.text}
+            </p>
+          )}
+
+          {/* Avatar */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative">
+              <img
+                src={image?.preview || getImageUrl(admin?.image)}
+                alt="Profile"
+                className="w-20 h-20 rounded-full object-cover border"
+              />
+              {image && (
+                <button
+                  onClick={() => setImage(null)}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+            <div>
+              <button
+                onClick={() => imageInputRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-md text-xs text-gray-500 hover:border-gray-400 hover:bg-gray-50"
+              >
+                <ImagePlus className="w-4 h-4" />
+                <span>{image ? "Change photo" : "Upload photo"}</span>
+              </button>
+            </div>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          </div>
+
+          {/* Fields */}
+          <div className="grid grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                First Name
+              </label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Last Name
+              </label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Contact No.
+              </label>
+              <input
+                type="text"
+                value={contactNo}
+                onChange={(e) => setContactNo(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Birthdate
+              </label>
+              <input
+                type="date"
+                value={birthdate}
+                onChange={(e) => setBirthdate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+            <div className="col-span-full">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Home Address
+              </label>
+              <textarea
+                value={homeAddress}
+                onChange={(e) => setHomeAddress(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleSaveProfile}
+              disabled={saving}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-6 py-3 rounded-md transition-colors disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              <span>{saving ? "Saving..." : "Save Changes"}</span>
             </button>
           </div>
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageChange}
-          />
         </div>
 
-        {/* Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              First Name
-            </label>
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
+        {/* Change Password */}
+        <div className="border border-gray-200 rounded-lg bg-white p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Lock className="w-4 h-4 text-gray-600" />
+            <h2 className="text-md font-bold">Change Password</h2>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Last Name
-            </label>
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Username
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Contact No.
-            </label>
-            <input
-              type="text"
-              value={contactNo}
-              onChange={(e) => setContactNo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Birthdate
-            </label>
-            <input
-              type="date"
-              value={birthdate}
-              onChange={(e) => setBirthdate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
-          </div>
-          <div className="col-span-full">
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Home Address
-            </label>
-            <textarea
-              value={homeAddress}
-              onChange={(e) => setHomeAddress(e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end mt-6">
-          <button
-            onClick={handleSaveProfile}
-            disabled={saving}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-6 py-3 rounded-md transition-colors disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            <span>{saving ? "Saving..." : "Save Changes"}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Change Password */}
-      <div className="border border-gray-200 rounded-lg bg-white p-6">
-        <div className="flex items-center gap-2 mb-1">
-          <Lock className="w-4 h-4 text-gray-600" />
-          <h2 className="text-md font-bold">Change Password</h2>
-        </div>
-        <p className="text-xs text-gray-500 mb-6">
-          Make sure your new password is at least 8 characters.
-        </p>
-
-        {pwMessage && (
-          <p
-            className={`text-xs mb-4 font-medium ${pwMessage.type === "success" ? "text-green-600" : "text-red-500"}`}
-          >
-            {pwMessage.text}
+          <p className="text-xs text-gray-500 mb-6">
+            Make sure your new password is at least 8 characters.
           </p>
-        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Current Password
-            </label>
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              New Password
-            </label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-            />
-          </div>
-        </div>
+          {pwMessage && (
+            <p
+              className={`text-xs mb-4 font-medium ${pwMessage.type === "success" ? "text-green-600" : "text-red-500"}`}
+            >
+              {pwMessage.text}
+            </p>
+          )}
 
-        <div className="flex justify-end mt-6">
-          <button
-            onClick={handleChangePassword}
-            disabled={changingPw}
-            className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-xs px-6 py-3 rounded-md transition-colors disabled:opacity-50"
-          >
-            <Lock className="w-4 h-4" />
-            <span>{changingPw ? "Updating..." : "Update Password"}</span>
-          </button>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Current Password
+              </label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                New Password
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleChangePassword}
+              disabled={changingPw}
+              className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-xs px-6 py-3 rounded-md transition-colors disabled:opacity-50"
+            >
+              <Lock className="w-4 h-4" />
+              <span>{changingPw ? "Updating..." : "Update Password"}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

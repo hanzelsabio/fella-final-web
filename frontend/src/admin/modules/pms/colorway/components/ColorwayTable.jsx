@@ -179,7 +179,7 @@ const ColorwayTable = () => {
             >
               <div className="flex items-center justify-center">
                 <Plus className="w-4 h-4" />
-                <span className="ps-2">Add New</span>
+                <span className="ps-2">New Colorway</span>
               </div>
             </Link>
           </div>
@@ -346,7 +346,7 @@ const ColorwayTable = () => {
                         >
                           <div className="flex items-center gap-2">
                             <Plus className="w-3 h-3" />
-                            <span>Add Colorway</span>
+                            <span>New Colorway</span>
                           </div>
                         </Link>
                       )}

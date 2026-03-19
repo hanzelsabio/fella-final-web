@@ -212,9 +212,9 @@ const ClientReviewList = () => {
 
   return (
     <div className="pb-6">
-      {/* ✅ Section Settings Card */}
+      {/* Section Settings Card */}
       <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 justify-between gap-5 mb-4">
           <div>
             <h3 className="text-sm font-semibold text-gray-800">
               Section Header
@@ -223,14 +223,16 @@ const ClientReviewList = () => {
               Customize the heading and subheading shown above the reviews.
             </p>
           </div>
-          <button
-            onClick={handleSaveSettings}
-            disabled={savingSettings}
-            className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex items-center gap-2 disabled:opacity-50"
-          >
-            <Save className="w-3.5 h-3.5" />
-            <span>{savingSettings ? "Saving..." : "Save Changes"}</span>
-          </button>
+          <div className="flex justify-end items-center">
+            <button
+              onClick={handleSaveSettings}
+              disabled={savingSettings}
+              className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex gap-2 self-end sm:self-auto"
+            >
+              <Save className="w-4 h-4" />
+              <span>{savingSettings ? "Saving..." : "Save Changes"}</span>
+            </button>
+          </div>
         </div>
 
         {settingsMessage && (
@@ -241,7 +243,7 @@ const ClientReviewList = () => {
           </p>
         )}
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Heading <span className="text-red-500">*</span>
@@ -263,7 +265,7 @@ const ClientReviewList = () => {
               value={subheading}
               onChange={(e) => setSubheading(e.target.value)}
               placeholder="e.g. Real stories from people who've worked with us..."
-              rows={2}
+              rows={1}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
             />
           </div>

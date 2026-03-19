@@ -180,7 +180,7 @@ const ServiceTable = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <Plus className="w-4 h-4" />
-                <span>Add New</span>
+                <span>New Service</span>
               </div>
             </Link>
           </div>
@@ -338,7 +338,7 @@ const ServiceTable = () => {
                         >
                           <div className="flex items-center gap-2">
                             <Plus className="w-3 h-3" />
-                            <span>Add Service</span>
+                            <span>New Service</span>
                           </div>
                         </Link>
                       )}

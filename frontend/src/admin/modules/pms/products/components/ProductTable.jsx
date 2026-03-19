@@ -203,7 +203,7 @@ const ProductTable = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <Plus className="w-4 h-4" />
-                <span>Add Product</span>
+                <span>New Product</span>
               </div>
             </Link>
           </div>

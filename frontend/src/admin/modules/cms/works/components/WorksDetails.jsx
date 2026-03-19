@@ -159,7 +159,7 @@ const WorksDetails = () => {
             className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex items-center gap-2 self-end sm:self-auto"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Images</span>
+            <span>New Images</span>
           </button>
           <input
             ref={uploadInputRef}
@@ -215,14 +215,14 @@ const WorksDetails = () => {
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setUploadQueue([])}
-              className="px-4 py-2 text-xs border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-3 text-xs border border-gray-300 rounded-md hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSaveAll}
               disabled={saving}
-              className="px-4 py-2 text-xs bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50"
+              className="px-4 py-3 text-xs bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50"
             >
               {saving
                 ? "Uploading..."

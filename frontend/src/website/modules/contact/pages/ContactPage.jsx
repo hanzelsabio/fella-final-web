@@ -1,6 +1,6 @@
 import BackToTop from "../../../components/helper/BackToTop";
 import AnnouncementLayout from "../../../components/layout/Announcement/AnnouncementLayout";
-import GetStartedLayout from "../../../components/layout/Banner/GetStartedLayout";
+import Banner from "../../../components/layout/Banner/Banner";
 import FaqsLayout from "../../../components/layout/FAQ/FaqsLayout";
 import FooterLayout from "../../../components/layout/Footer/FooterLayout";
 import HeaderLayout from "../../../components/layout/Header/HeaderLayout";
@@ -14,7 +14,7 @@ const ContactPage = () => {
       <AnnouncementLayout />
       <HeaderLayout />
       <ContactLayout />
-      <GetStartedLayout />
+      <Banner />
       <FaqsLayout />
       <ReviewsLayout />
       <div className="bg-black text-white">

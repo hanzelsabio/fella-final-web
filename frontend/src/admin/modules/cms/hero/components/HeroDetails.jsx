@@ -360,7 +360,7 @@ const HeroDetails = () => {
             className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex items-center gap-2 self-end sm:self-auto"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Slide</span>
+            <span>New Slide</span>
           </button>
         </div>
       </div>

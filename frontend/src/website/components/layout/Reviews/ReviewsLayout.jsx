@@ -54,7 +54,7 @@ const ReviewsLayout = () => {
       )}
 
       {/* Mobile Slider */}
-      <div className="lg:hidden">
+      <div className="lg:hidden pt-10">
         <div
           ref={sliderRef}
           className="flex overflow-x-auto gap-4 snap-x snap-mandatory scrollbar-hide"
@@ -83,7 +83,7 @@ const ReviewsLayout = () => {
       </div>
 
       {/* Desktop Grid */}
-      <div className="hidden lg:grid grid-cols-3 gap-6">
+      <div className="hidden lg:grid grid-cols-3 gap-6 pt-10">
         {reviews.slice(0, 3).map((review) => (
           <div
             key={review.id}

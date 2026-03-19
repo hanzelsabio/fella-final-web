@@ -93,11 +93,11 @@ const AddCategoryForm = () => {
             <div className="flex flex-wrap text-xs gap-2 flex-shrink-0 px-4 sm:px-6">
               <Link
                 to={`${basePath}/categories`}
-                className="bg-white text-black border border-gray-400 rounded-md px-3 md:px-6 py-3"
+                className="bg-white text-black rounded-md px-3 md:px-6 py-3"
               >
                 <div className="flex items-center">
                   <ArrowLeft className="w-4 h-4" />
-                  <span className="ps-2">Back</span>
+                  <span className="ps-2">Back to Categories</span>
                 </div>
               </Link>
             </div>
