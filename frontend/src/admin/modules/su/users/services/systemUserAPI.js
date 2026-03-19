@@ -1,23 +1,13 @@
 import axios from "axios";
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000";
+// export const API_BASE_URL = "http://localhost:5000";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
-
-// export const API_BASE_URL = "http://localhost:5000";
-
-// const api = axios.create({
-//   baseURL: "/api",
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// });
 
 // Add response interceptor for debugging
 api.interceptors.response.use(
