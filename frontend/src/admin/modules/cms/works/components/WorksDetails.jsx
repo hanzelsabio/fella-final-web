@@ -9,7 +9,7 @@ import {
   ImagePlus,
 } from "lucide-react";
 import { useWorks } from "../context/WorksContext";
-import { uploadAPI, getImageUrl } from "../../../../../services/api";
+import { uploadAPI, getImageUrl } from "../../../../../services";
 import BulkActionBar from "../../../../components/common/BulkActionBar";
 import CustomDropdown from "../../../../components/common/CustomDropdown";
 

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../modules/auth/context/AuthContext";
-import { getImageUrl } from "../../services/api";
+import { getImageUrl } from "../../services";
 import {
   Menu,
   ChevronDown,

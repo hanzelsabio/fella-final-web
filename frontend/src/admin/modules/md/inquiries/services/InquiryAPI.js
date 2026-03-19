@@ -1,40 +1,16 @@
-import axios from "axios";
+import api from "../../../../../services";
 
-export const API_BASE_URL = "http://localhost:5000"; // ← exported so components can use it
+const BASE = "/inquiries";
 
-const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Add response interceptor for debugging
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
-    return Promise.reject(error);
-  },
-);
-
-// Inquiries
 export const inquiryAPI = {
-  getAll: () => api.get("/inquiries"),
-  getById: (inquiry_number) => api.get(`/inquiries/${inquiry_number}`),
-  delete: (id) => api.delete(`/inquiries/${id}`),
-  archive: (id) => api.patch(`/inquiries/${id}/archive`),
-  restore: (id) => api.patch(`/inquiries/${id}/restore`),
-  markAsResponded: (id) => api.patch(`/inquiries/${id}/responded`),
-  markAsCancelled: (id) => api.patch(`/inquiries/${id}/cancelled`),
-  markAsPending: (id) => api.patch(`/inquiries/${id}/pending`),
+  getAll: () => api.get(BASE),
+  getById: (inquiry_number) => api.get(`${BASE}/${inquiry_number}`),
+  delete: (id) => api.delete(`${BASE}/${id}`),
+  archive: (id) => api.patch(`${BASE}/${id}/archive`),
+  restore: (id) => api.patch(`${BASE}/${id}/restore`),
+  markAsResponded: (id) => api.patch(`${BASE}/${id}/responded`),
+  markAsCancelled: (id) => api.patch(`${BASE}/${id}/cancelled`),
+  markAsPending: (id) => api.patch(`${BASE}/${id}/pending`),
   changePriority: (id, priority) =>
-    api.patch(`/inquiries/${id}/priority`, { priority }),
+    api.patch(`${BASE}/${id}/priority`, { priority }),
 };
-
-export default api;

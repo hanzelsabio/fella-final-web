@@ -1,37 +1,13 @@
-import axios from "axios";
+import api from "../../../../../services/api";
 
-export const API_BASE_URL = "http://localhost:5000";
+const BASE = "/inventory";
 
-const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Add response interceptor for debugging
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
-    return Promise.reject(error);
-  },
-);
-
-// Inventory
 export const inventoryAPI = {
-  getAll: () => api.get("/inventory"),
-  getById: (id) => api.get(`/inventory/${id}`),
-  create: (data) => api.post("/inventory", data),
-  update: (id, data) => api.put(`/inventory/${id}`, data),
-  delete: (id) => api.delete(`/inventory/${id}`),
-  archive: (id) => api.patch(`/inventory/${id}/archive`),
-  restore: (id) => api.patch(`/inventory/${id}/restore`),
+  getAll: () => api.get(BASE),
+  getById: (id) => api.get(`${BASE}/${id}`),
+  create: (data) => api.post(BASE, data),
+  update: (id, data) => api.put(`${BASE}/${id}`, data),
+  delete: (id) => api.delete(`${BASE}/${id}`),
+  archive: (id) => api.patch(`${BASE}/${id}/archive`),
+  restore: (id) => api.patch(`${BASE}/${id}/restore`),
 };
-
-export default api;

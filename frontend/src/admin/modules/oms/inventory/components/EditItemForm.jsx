@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useInventory } from "../context/InventoryContext";
-import { uploadAPI, getImageUrl } from "../../../../../services/api";
+import { uploadAPI, getImageUrl } from "../../../../../services";
 import { Save, ArrowLeft, ImagePlus, X } from "lucide-react";
 
 const EditItemForm = () => {

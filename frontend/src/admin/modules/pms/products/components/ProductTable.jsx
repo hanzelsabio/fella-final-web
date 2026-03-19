@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useProducts } from "../context/ProductContext";
-import { getImageUrl } from "../../../../../services/api";
+import { getImageUrl } from "../../../../../services/imageUrl";
 import { SquarePen, Plus, Search, Filter } from "lucide-react";
 
 import CustomDropdown from "../../../../components/common/CustomDropdown";

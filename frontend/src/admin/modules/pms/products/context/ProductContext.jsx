@@ -1,18 +1,15 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import {
-  productAPI,
-  draftAPI,
-  serviceAPI,
-  categoryAPI,
-  colorAPI,
-  getImageUrl,
-} from "../services/productAPI";
+import { productAPI } from "../services/productAPI";
+import { draftAPI } from "../services/draftAPI";
+import { serviceAPI } from "../../services/services/serviceAPI";
+import { categoryAPI } from "../../categories/services/categoryAPI";
+import { colorAPI } from "../../colorway/services/colorwayAPI";
+import { getImageUrl } from "../../../../../services";
 
 const ProductContext = createContext();
 
 // ─── Shape raw DB product into what all components expect ──────────────────────
 const shapeProduct = (product, colorsMap) => {
-  // productImages is [{ url }] objects from the controller — extract the url string
   const rawImage =
     product.productImages?.[0]?.url ||
     product.productImages?.[0] ||
@@ -25,7 +22,6 @@ const shapeProduct = (product, colorsMap) => {
       const match = colorsMap[colorId];
       if (!match) return null;
 
-      // Per-color image comes from product.colorImages, not the color definition
       const rawColorImage = product.colorImages?.[colorId] || null;
       const colorImage = rawColorImage ? getImageUrl(rawColorImage) : image;
 

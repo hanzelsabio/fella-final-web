@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useAuth } from "../../modules/auth/context/AuthContext";
-import { uploadAPI, getImageUrl } from "../../services/api";
+import { uploadAPI, getImageUrl } from "../../services";
 import { Save, ImagePlus, X, Lock } from "lucide-react";
 import Breadcrumb from "../../admin/components/common/Breadcrumb";
 

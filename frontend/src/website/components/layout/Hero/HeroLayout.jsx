@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { getImageUrl } from "../../../../services/api";
+import { getImageUrl } from "../../../../services/imageUrl";
 import "./hero.css";
 
 function HeroLayout() {

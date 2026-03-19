@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getImageUrl } from "../../../../services/api";
+import { getImageUrl } from "../../../../services/imageUrl";
 import "./works.css";
 
 function WorksLayout() {

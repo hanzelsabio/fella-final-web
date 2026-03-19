@@ -1,37 +1,14 @@
-import axios from "axios";
+import api from "../../../../../services";
 
-export const API_BASE_URL = "http://localhost:5000";
+const BASE = "/colors";
 
-const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Add response interceptor for debugging
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
-    return Promise.reject(error);
-  },
-);
-
-// Colors
+// Note: archive/restore use PUT (not PATCH) — intentional, matches backend
 export const colorAPI = {
-  getAll: () => api.get("/colors"),
-  getById: (id) => api.get(`/colors/${id}`),
-  create: (data) => api.post("/colors", data),
-  update: (id, data) => api.put(`/colors/${id}`, data),
-  delete: (id) => api.delete(`/colors/${id}`),
-  archive: (id) => api.put(`/colors/${id}/archive`),
-  restore: (id) => api.put(`/colors/${id}/restore`),
+  getAll: () => api.get(BASE),
+  getById: (id) => api.get(`${BASE}/${id}`),
+  create: (data) => api.post(BASE, data),
+  update: (id, data) => api.put(`${BASE}/${id}`, data),
+  delete: (id) => api.delete(`${BASE}/${id}`),
+  archive: (id) => api.put(`${BASE}/${id}/archive`),
+  restore: (id) => api.put(`${BASE}/${id}/restore`),
 };
-
-export default api;

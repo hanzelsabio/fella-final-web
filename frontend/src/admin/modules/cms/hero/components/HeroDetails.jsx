@@ -11,7 +11,7 @@ import {
   ImagePlus,
 } from "lucide-react";
 import { useHero } from "../context/HeroContext";
-import { uploadAPI, getImageUrl } from "../../../../../services/api";
+import { uploadAPI, getImageUrl } from "../../../../../services";
 import BulkActionBar from "../../../../components/common/BulkActionBar";
 import CustomDropdown from "../../../../components/common/CustomDropdown";
 

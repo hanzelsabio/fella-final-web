@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useSystemUser } from "../context/SystemUserContext";
-import { uploadAPI, getImageUrl } from "../../../../../services/api";
+import { uploadAPI, getImageUrl } from "../../../../../services";
 import { Save, ArrowLeft, ImagePlus, X } from "lucide-react";
 
 const ROLE_OPTIONS = ["staff", "manager", "admin"];

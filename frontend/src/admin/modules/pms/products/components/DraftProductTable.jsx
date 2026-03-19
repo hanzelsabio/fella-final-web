@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useProducts } from "../context/ProductContext";
-import { getImageUrl } from "../../../../../services/api";
+import { getImageUrl } from "../../../../../services";
 import { PackageSearch, Plus, Search, Filter, Edit, Send } from "lucide-react";
 
 import CustomDropdown from "../../../../components/common/CustomDropdown";

@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
 import { useProducts } from "../context/ProductContext";
-import { uploadAPI } from "../../../../../services/api";
+import { uploadAPI } from "../../../../../services";
 import {
   SquarePen,
   Save,

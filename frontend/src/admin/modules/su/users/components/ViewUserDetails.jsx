@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { getImageUrl } from "../../../../../services/api";
+import { getImageUrl } from "../../../../../services";
 import { ArrowLeft, Edit, User } from "lucide-react";
 
 const roleBadge = (role) => {

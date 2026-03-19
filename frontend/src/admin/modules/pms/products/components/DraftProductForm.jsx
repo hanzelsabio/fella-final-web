@@ -1,7 +1,7 @@
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useProducts } from "../context/ProductContext";
-import { uploadAPI, getImageUrl } from "../../../../../services/api";
+import { uploadAPI, getImageUrl } from "../../../../../services";
 import {
   Save,
   ArrowLeft,

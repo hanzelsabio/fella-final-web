@@ -1,7 +1,7 @@
 import { Link, useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useInventory } from "../context/InventoryContext";
-import { getImageUrl } from "../../../../../services/api";
+import { getImageUrl } from "../../../../../services";
 import { ArrowLeft, Edit, Package } from "lucide-react";
 
 const ViewItemDetails = () => {

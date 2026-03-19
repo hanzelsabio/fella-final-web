@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import ImageUploadSection from "../../../../components/common/ImageUploadSection";
-import { uploadAPI, getImageUrl } from "../../../../../services/api"; // ← added getImageUrl
+import { uploadAPI, getImageUrl } from "../../../../../services";
 
 const EditProductForm = () => {
   const { slug } = useParams();

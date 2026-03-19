@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import SectionTitle from "../../common/SectionTitle";
 import "./about.css";
-import { getImageUrl } from "../../../../services/api";
+import { getImageUrl } from "../../../../services/imageUrl";
 
 const AboutLayout = () => {
   const [about, setAbout] = useState(null);

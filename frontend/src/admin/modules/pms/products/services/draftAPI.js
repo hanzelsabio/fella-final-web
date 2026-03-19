@@ -1,13 +1,12 @@
 import api from "../../../../../services";
 
-const BASE = "/categories";
+const BASE = "/drafts";
 
-export const categoryAPI = {
+export const draftAPI = {
   getAll: () => api.get(BASE),
   getById: (id) => api.get(`${BASE}/${id}`),
-  create: (data) => api.post(BASE, data),
+  save: (data) => api.post(BASE, data),
   update: (id, data) => api.put(`${BASE}/${id}`, data),
   delete: (id) => api.delete(`${BASE}/${id}`),
-  archive: (id) => api.patch(`${BASE}/${id}/archive`),
-  restore: (id) => api.patch(`${BASE}/${id}/restore`),
+  publish: (id) => api.post(`${BASE}/${id}/publish`),
 };

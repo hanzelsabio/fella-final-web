@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
 import { useInventory } from "../context/InventoryContext";
-import { uploadAPI } from "../../../../../services/api";
+import { uploadAPI } from "../../../../../services";
 import { Save, ArrowLeft, ImagePlus, X } from "lucide-react";
 
 const AddItemForm = () => {
