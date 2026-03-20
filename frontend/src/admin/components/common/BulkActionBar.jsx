@@ -7,19 +7,19 @@ const BulkActionBar = ({
   archiveLabel = "Archive",
   extraActions = [],
 }) => (
-  <div className="border border-gray-200 rounded-lg bg-white p-4 sm:p-6 mt-4">
-    <div className="flex flex-col sm:flex-row justify-between items-center gap-5">
-      <h2 className="text-sm font-medium">
+  <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-gray-200 bg-white shadow-lg px-4 py-5">
+    <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+      <p className="text-xs text-gray-500">
         {count} item{count !== 1 ? "s" : ""} selected
-      </h2>
-      <div className="flex text-xs gap-3 flex-shrink-0 self-center sm:self-auto">
+      </p>
+      <div className="flex text-xs gap-3 flex-shrink-0">
         <button
           onClick={onDelete}
           className="bg-red-600 hover:bg-red-500 text-white rounded-md px-4 py-3 transition-colors"
         >
           <div className="flex items-center justify-center gap-2">
             <Trash2 className="w-4 h-4" />
-            <span className="hidden lg:flex">Delete</span>
+            <span className="hidden sm:flex">Delete</span>
           </div>
         </button>
         <button
@@ -28,7 +28,7 @@ const BulkActionBar = ({
         >
           <div className="flex items-center justify-center gap-2">
             <Archive className="w-4 h-4" />
-            <span className="hidden lg:flex">{archiveLabel}</span>
+            <span className="hidden sm:flex">{archiveLabel}</span>
           </div>
         </button>
 
@@ -49,7 +49,7 @@ const BulkActionBar = ({
             >
               <div className="flex items-center justify-center gap-2">
                 {Icon && <Icon className="w-4 h-4" />}
-                <span className="hidden sm:flex">{label}</span>
+                <span className="hidden md:flex">{label}</span>
               </div>
             </button>
           ),

@@ -1,13 +1,71 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { CheckCheck } from "lucide-react";
 import { useInvoices } from "../context/InvoiceContext";
-import { Search, Filter, CheckCheck } from "lucide-react";
 
-import CustomDropdown from "../../../../components/common/CustomDropdown";
-import InvoiceDropdown from "../../../../components/common/Dropdown/ActionsDropdown/InvoiceDropdown";
-import SortableHeader from "../../../../components/common/SortableHeader";
-import TablePagination from "../../../../components/common/TablePagination";
-import BulkActionBar from "../../../../components/common/BulkActionBar";
+import useBasePath from "../../../../components/hooks/useBasePath";
+import useTableFilter from "../../../../components/hooks/useTableFilter";
+import useTableSort from "../../../../components/hooks/useTableSort";
 import { usePaginatedTable } from "../../../../components/hooks/usePaginatedTable";
+
+import TableLayout from "../../../../components/common/TableLayout";
+import TableHead from "../../../../components/common/TableHead";
+import TableRow from "../../../../components/common/TableRow";
+import TableEmptyState from "../../../../components/common/TableEmptyState";
+import DateCell from "../../../../components/common/DateCell";
+import Td from "../../../../components/common/Td";
+import InvoiceDropdown from "../../../../components/common/Dropdown/ActionsDropdown/InvoiceDropdown";
+
+// ── Invoice-specific status badge ────────────────────────────────────────────
+const INVOICE_STATUS_STYLES = {
+  paid: "bg-green-100 text-green-600",
+  unpaid: "bg-yellow-100 text-yellow-600",
+  archived: "bg-gray-100 text-gray-600",
+};
+
+const InvoiceStatusBadge = ({ status }) => (
+  <span
+    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${INVOICE_STATUS_STYLES[status] || "bg-gray-100 text-gray-600"}`}
+  >
+    {status}
+  </span>
+);
+
+const STATUS_OPTIONS = [
+  { value: "all", label: "All Status" },
+  { value: "paid", label: "Paid" },
+  { value: "unpaid", label: "Unpaid" },
+  { value: "archived", label: "Archived" },
+];
+
+const COLUMNS = [
+  {
+    label: "Invoice Number",
+    column: "invoice_number",
+    minWidth: "min-w-[180px]",
+  },
+  { label: "Customer", column: "name", minWidth: "min-w-[200px]" },
+  { label: "Created On", column: "created_at", minWidth: "min-w-[180px]" },
+  { label: "Due Date", column: "due_date", minWidth: "min-w-[180px]" },
+  {
+    label: "Total",
+    column: "total",
+    minWidth: "min-w-[150px]",
+    sortable: false,
+  },
+  {
+    label: "Status",
+    column: "status",
+    minWidth: "min-w-[150px]",
+    sortable: false,
+  },
+];
+
+const SORT_CONFIG = [
+  { key: "invoice_number", type: "string" },
+  { key: "name", type: "string" },
+  { key: "due_date", type: "date" },
+  { key: "created_at", type: "date" },
+];
 
 const InvoiceTable = () => {
   const {
@@ -18,9 +76,7 @@ const InvoiceTable = () => {
     markAsPaid,
     markAsUnpaid,
   } = useInvoices();
-
-  const location = useLocation();
-  const basePath = location.pathname.startsWith("/staff") ? "/staff" : "/admin";
+  const basePath = useBasePath();
 
   const {
     searchTerm,
@@ -47,77 +103,38 @@ const InvoiceTable = () => {
     defaultStatusFilter: "all",
   });
 
-  const statusOptions = [
-    { value: "all", label: "All Status" },
-    { value: "paid", label: "Paid" },
-    { value: "unpaid", label: "Unpaid" },
-    { value: "archived", label: "Archived" },
-  ];
-
-  // ── Filter ──────────────────────────────────────────────────────
-  const filteredInvoices = invoices.filter((invoice) => {
-    const matchesSearch =
-      invoice.invoice_number
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      invoice.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    return (
-      matchesSearch &&
-      (statusFilter === "all" || invoice.status === statusFilter)
-    );
-  });
-
-  // ── Sort ────────────────────────────────────────────────────────
-  const sortedInvoices = [...filteredInvoices].sort((a, b) => {
-    let valA, valB;
-    switch (sortColumn) {
-      case "invoice_number":
-        valA = a.invoice_number?.toLowerCase() ?? "";
-        valB = b.invoice_number?.toLowerCase() ?? "";
-        break;
-      case "name":
-        valA = a.name?.toLowerCase() ?? "";
-        valB = b.name?.toLowerCase() ?? "";
-        break;
-      case "due_date":
-        valA = new Date(a.due_date ?? 0);
-        valB = new Date(b.due_date ?? 0);
-        break;
-      case "created_at":
-      default:
-        valA = new Date(a.created_at ?? 0);
-        valB = new Date(b.created_at ?? 0);
-        break;
-    }
-    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-    return 0;
-  });
+  const filtered = useTableFilter(invoices, searchTerm, statusFilter, [
+    "invoice_number",
+    "name",
+  ]);
+  const sorted = useTableSort(filtered, sortColumn, sortOrder, SORT_CONFIG);
 
   const {
     totalPages,
     startIndex,
     currentItems: currentInvoices,
-  } = paginate(sortedInvoices);
+  } = paginate(sorted);
   const isAllSelected =
     currentInvoices.length > 0 &&
     selectedItems.length === currentInvoices.length;
-  const hasSelection = selectedItems.length > 0;
 
-  // ── Bulk action labels ──────────────────────────────────────────
+  // ── Bulk labels ──────────────────────────────────────────────────────────
   const bulkArchiveLabel = (() => {
-    if (!hasSelection) return "Archive";
-    const first = invoices.find((i) => i.id === selectedItems[0]);
-    return first?.status === "archived" ? "Unarchive" : "Archive";
+    if (!selectedItems.length) return "Archive";
+    return invoices.find((i) => i.id === selectedItems[0])?.status ===
+      "archived"
+      ? "Unarchive"
+      : "Archive";
   })();
 
   const bulkPaidLabel = (() => {
-    if (!hasSelection) return "Mark as Paid";
-    const first = invoices.find((i) => i.id === selectedItems[0]);
-    return first?.status === "paid" ? "Mark as Unpaid" : "Mark as Paid";
+    if (!selectedItems.length) return "Mark as Paid";
+    return invoices.find((i) => i.id === selectedItems[0])?.status === "paid"
+      ? "Mark as Unpaid"
+      : "Mark as Paid";
   })();
 
-  // ── Bulk actions ────────────────────────────────────────────────
+  // ── Bulk actions ─────────────────────────────────────────────────────────
   const handleBulkDelete = async () => {
     if (!window.confirm(`Delete ${selectedItems.length} invoice(s)?`)) return;
     for (const id of selectedItems) await deleteInvoice(id);
@@ -160,7 +177,7 @@ const InvoiceTable = () => {
     alert(`Selected invoices marked as ${isPaid ? "unpaid" : "paid"}.`);
   };
 
-  // ── Row-level handlers ──────────────────────────────────────────
+  // ── Row actions ──────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     if (window.confirm("Delete this invoice?")) {
       const result = await deleteInvoice(id);
@@ -169,8 +186,7 @@ const InvoiceTable = () => {
   };
 
   const handleArchive = async (id) => {
-    const invoice = invoices.find((i) => i.id === id);
-    const isArchived = invoice?.status === "archived";
+    const isArchived = invoices.find((i) => i.id === id)?.status === "archived";
     if (
       window.confirm(
         isArchived ? "Restore this invoice?" : "Archive this invoice?",
@@ -209,219 +225,115 @@ const InvoiceTable = () => {
     }
   };
 
-  // ── Status badge ────────────────────────────────────────────────
-  const getStatusBadge = (status) => {
-    const styles = {
-      paid: "bg-green-100 text-green-600",
-      unpaid: "bg-yellow-100 text-yellow-600",
-      archived: "bg-gray-100 text-gray-600",
-    };
-    const labels = { paid: "Paid", unpaid: "Unpaid", archived: "Archived" };
-    return (
-      <span
-        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || "bg-gray-100 text-gray-600"}`}
-      >
-        {labels[status] || status}
-      </span>
-    );
-  };
-
   return (
     <div className="pb-4">
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Search and Filter */}
-        <div className="p-4 sm:p-6">
-          <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
-            <div className="relative flex-1 w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by invoice number, customer name..."
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full lg:w-[300px] pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-              />
-            </div>
-            <CustomDropdown
-              value={statusFilter}
-              onChange={handleStatusChange}
-              options={statusOptions}
-              placeholder="All Status"
-              icon={Filter}
-            />
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="bg-gray-50 text-left">
-                <th className="min-w-[50px] px-6 pt-5 pb-4">
-                  <input
-                    type="checkbox"
-                    checked={isAllSelected}
-                    onChange={handleSelectAll(currentInvoices)}
-                    className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                  />
-                </th>
-                <th className="min-w-[180px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="invoice_number"
-                    label="Invoice Number"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[200px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="name"
-                    label="Customer"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[180px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="created_at"
-                    label="Created On"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[180px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="due_date"
-                    label="Due Date"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[150px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  Total
-                </th>
-                <th className="min-w-[150px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  Status
-                </th>
-                <th className="px-4 sm:px-6 py-4 text-xs font-semibold uppercase text-end" />
-              </tr>
-            </thead>
-            <tbody>
-              {currentInvoices.length > 0 ? (
-                currentInvoices.map((invoice, index) => (
-                  <tr
-                    key={invoice.id}
-                    className={`${index !== currentInvoices.length - 1 ? "border-b border-gray-200" : ""} hover:bg-gray-50`}
-                  >
-                    <td className="px-6 pt-5 pb-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(invoice.id)}
-                        onChange={() => handleSelectOne(invoice.id)}
-                        className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                      />
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <Link
-                        to={`${basePath}/invoices/view/${invoice.invoice_number}`}
-                        className="text-sm font-medium underline text-gray-900"
-                      >
-                        {invoice.invoice_number || "N/A"}
-                      </Link>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <p className="text-sm text-gray-500">
-                        {invoice.name || "N/A"}
-                      </p>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <p className="text-sm text-gray-500">
-                        {invoice.created_at
-                          ? new Date(invoice.created_at).toLocaleDateString()
-                          : "N/A"}
-                      </p>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <p className="text-sm text-gray-500">
-                        {invoice.due_date
-                          ? new Date(invoice.due_date).toLocaleDateString()
-                          : "N/A"}
-                      </p>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <p className="text-sm text-gray-500">
-                        ₱{" "}
-                        {parseFloat(invoice.total || 0).toLocaleString(
-                          "en-PH",
-                          {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          },
-                        )}
-                      </p>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      {getStatusBadge(invoice.status)}
-                    </td>
-                    <td className="text-end px-4 sm:px-6 py-5">
-                      <InvoiceDropdown
-                        invoiceId={invoice.id}
-                        invoiceNumber={invoice.invoice_number}
-                        status={invoice.status}
-                        onDelete={handleDelete}
-                        onArchive={handleArchive}
-                        onMarkAsPaid={handleMarkAsPaid}
-                        onMarkAsUnpaid={handleMarkAsUnpaid}
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="8" className="px-4 sm:px-6 py-12 text-center">
-                    <p className="text-gray-500 text-sm">
-                      No invoices found matching your search criteria.
+      <TableLayout
+        searchValue={searchTerm}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Search by invoice number, customer name..."
+        filters={[
+          {
+            value: statusFilter,
+            onChange: handleStatusChange,
+            options: STATUS_OPTIONS,
+            placeholder: "All Status",
+          },
+        ]}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        totalItems={sorted.length}
+        itemLabel="invoices"
+        onPrevious={goToPrevious}
+        onNext={() => goToNext(totalPages)}
+        onGoToPage={goToPage}
+        getPageNumbers={getPageNumbers}
+        bulkCount={selectedItems.length}
+        onBulkDelete={handleBulkDelete}
+        onBulkArchive={handleBulkArchive}
+        bulkArchiveLabel={bulkArchiveLabel}
+        bulkExtraActions={[
+          {
+            label: bulkPaidLabel,
+            icon: CheckCheck,
+            onClick: handleBulkPaid,
+            className: "bg-green-500 hover:bg-green-600",
+          },
+        ]}
+        thead={
+          <TableHead
+            columns={COLUMNS}
+            isAllSelected={isAllSelected}
+            onSelectAll={handleSelectAll(currentInvoices)}
+            sortColumn={sortColumn}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+          />
+        }
+        tbody={
+          <tbody>
+            {currentInvoices.length > 0 ? (
+              currentInvoices.map((invoice, index) => (
+                <TableRow
+                  key={invoice.id}
+                  id={invoice.id}
+                  isLast={index === currentInvoices.length - 1}
+                  isSelected={selectedItems.includes(invoice.id)}
+                  onSelect={() => handleSelectOne(invoice.id)}
+                  actions={
+                    <InvoiceDropdown
+                      invoiceId={invoice.id}
+                      invoiceNumber={invoice.invoice_number}
+                      status={invoice.status}
+                      onDelete={handleDelete}
+                      onArchive={handleArchive}
+                      onMarkAsPaid={handleMarkAsPaid}
+                      onMarkAsUnpaid={handleMarkAsUnpaid}
+                    />
+                  }
+                >
+                  <Td>
+                    <Link
+                      to={`${basePath}/invoices/view/${invoice.invoice_number}`}
+                      className="text-sm font-medium underline text-gray-900"
+                    >
+                      {invoice.invoice_number || "N/A"}
+                    </Link>
+                  </Td>
+                  <Td>
+                    <p className="text-sm text-gray-500">
+                      {invoice.name || "N/A"}
                     </p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          startIndex={startIndex}
-          totalItems={sortedInvoices.length}
-          itemLabel="invoices"
-          onPrevious={goToPrevious}
-          onNext={() => goToNext(totalPages)}
-          onGoToPage={goToPage}
-          getPageNumbers={getPageNumbers}
-        />
-      </div>
-
-      {hasSelection && (
-        <BulkActionBar
-          count={selectedItems.length}
-          onDelete={handleBulkDelete}
-          onArchive={handleBulkArchive}
-          archiveLabel={bulkArchiveLabel}
-          extraActions={[
-            {
-              label: bulkPaidLabel,
-              icon: CheckCheck,
-              onClick: handleBulkPaid,
-              className: "bg-green-500 hover:bg-green-600",
-            },
-          ]}
-        />
-      )}
+                  </Td>
+                  <Td>
+                    <DateCell value={invoice.created_at} />
+                  </Td>
+                  <Td>
+                    <DateCell value={invoice.due_date} />
+                  </Td>
+                  <Td>
+                    <p className="text-sm text-gray-500">
+                      ₱{" "}
+                      {parseFloat(invoice.total || 0).toLocaleString("en-PH", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </Td>
+                  <Td>
+                    <InvoiceStatusBadge status={invoice.status} />
+                  </Td>
+                </TableRow>
+              ))
+            ) : (
+              <TableEmptyState
+                title="No invoices found matching your search criteria."
+                colSpan={8}
+              />
+            )}
+          </tbody>
+        }
+      />
     </div>
   );
 };

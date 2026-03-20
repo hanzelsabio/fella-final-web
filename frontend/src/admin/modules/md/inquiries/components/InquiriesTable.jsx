@@ -1,20 +1,97 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Filter, SlidersHorizontal, CircleX, CheckCheck } from "lucide-react";
 import { useInquiries } from "../context/InquiryContext.jsx";
-import {
-  Search,
-  Filter,
-  SlidersHorizontal,
-  CircleX,
-  CheckCheck,
-} from "lucide-react";
 
-import CustomDropdown from "../../../../components/common/CustomDropdown";
+import useBasePath from "../../../../components/hooks/useBasePath";
+import useTableSort from "../../../../components/hooks/useTableSort";
+import { usePaginatedTable } from "../../../../components/hooks/usePaginatedTable";
+
+import TableLayout from "../../../../components/common/TableLayout";
+import TableHead from "../../../../components/common/TableHead";
+import TableRow from "../../../../components/common/TableRow";
+import TableEmptyState from "../../../../components/common/TableEmptyState";
+import DateCell from "../../../../components/common/DateCell";
+import Td from "../../../../components/common/Td";
 import InquiryDropdown from "../../../../components/common/Dropdown/ActionsDropdown/InquiryDropdown.jsx";
-import SortableHeader from "../../../../components/common/SortableHeader";
-import TablePagination from "../../../../components/common/TablePagination";
-import BulkActionBar from "../../../../components/common/BulkActionBar.jsx";
-import { usePaginatedTable } from "../../../../components/hooks/usePaginatedTable.js";
+
+// ── Inquiry-specific badges ──────────────────────────────────────────────────
+const INQUIRY_STATUS_STYLES = {
+  pending: "bg-yellow-100 text-yellow-600",
+  responded: "bg-blue-100 text-blue-600",
+  cancelled: "bg-orange-100 text-orange-600",
+  archived: "bg-gray-100 text-gray-600",
+};
+
+const InquiryStatusBadge = ({ status }) => (
+  <span
+    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${INQUIRY_STATUS_STYLES[status] || "bg-gray-100 text-gray-600"}`}
+  >
+    {status}
+  </span>
+);
+
+const PriorityBadge = ({ priority }) => (
+  <span
+    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${priority?.toLowerCase() === "high" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}
+  >
+    {priority === "high" ? "High" : "Normal"}
+  </span>
+);
+
+const PRIORITY_OPTIONS = [
+  { value: "all", label: "All Priority" },
+  { value: "high", label: "High" },
+  { value: "normal", label: "Normal" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "active", label: "All (Excluding Archived)" },
+  { value: "pending", label: "Pending" },
+  { value: "responded", label: "Responded" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "archived", label: "Archived" },
+];
+
+const COLUMNS = [
+  {
+    label: "Inquiry Number",
+    column: "inquiry_number",
+    minWidth: "min-w-[180px]",
+  },
+  { label: "Customer", column: "name", minWidth: "min-w-[200px]" },
+  {
+    label: "Product Type",
+    column: "product_type",
+    minWidth: "min-w-[200px]",
+    sortable: false,
+  },
+  {
+    label: "Service Type",
+    column: "service_type",
+    minWidth: "min-w-[250px]",
+    sortable: false,
+  },
+  { label: "Created On", column: "created_at", minWidth: "min-w-[180px]" },
+  {
+    label: "Priority",
+    column: "priority",
+    minWidth: "min-w-[150px]",
+    sortable: false,
+  },
+  {
+    label: "Status",
+    column: "status",
+    minWidth: "min-w-[150px]",
+    sortable: false,
+  },
+];
+
+const SORT_CONFIG = [
+  { key: "inquiry_number", type: "string" },
+  { key: "name", type: "string" },
+  { key: "created_at", type: "date" },
+];
 
 const InquiriesTable = () => {
   const {
@@ -27,9 +104,7 @@ const InquiriesTable = () => {
     markAsPending,
     changePriority,
   } = useInquiries();
-
-  const location = useLocation();
-  const basePath = location.pathname.startsWith("/staff") ? "/staff" : "/admin";
+  const basePath = useBasePath();
 
   const {
     searchTerm,
@@ -55,33 +130,15 @@ const InquiriesTable = () => {
     defaultSortOrder: "desc",
   });
 
-  // ── Priority filter (extra — not in hook) ───────────────────────
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const handlePriorityChange = (value) => {
-    setPriorityFilter(value);
-  };
 
-  const priorityOptions = [
-    { value: "all", label: "All Priority" },
-    { value: "high", label: "High" },
-    { value: "normal", label: "Normal" },
-  ];
-
-  const statusOptions = [
-    { value: "active", label: "All (Excluding Archived)" },
-    { value: "pending", label: "Pending" },
-    { value: "responded", label: "Responded" },
-    { value: "cancelled", label: "Cancelled" },
-    { value: "archived", label: "Archived" },
-  ];
-
-  // ── Filter ──────────────────────────────────────────────────────
-  const filteredInquiries = inquiries.filter((inquiry) => {
+  // Inquiries has custom status logic (active = not archived) + priority filter — manual filter
+  const filtered = inquiries.filter((inquiry) => {
+    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      inquiry.inquiry_number
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      inquiry.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      !term ||
+      inquiry.inquiry_number?.toLowerCase().includes(term) ||
+      inquiry.name?.toLowerCase().includes(term);
     const matchesPriority =
       priorityFilter === "all" ||
       inquiry.priority?.toLowerCase() === priorityFilter;
@@ -92,55 +149,35 @@ const InquiriesTable = () => {
     return matchesSearch && matchesPriority && matchesStatus;
   });
 
-  // ── Sort ────────────────────────────────────────────────────────
-  const sortedInquiries = [...filteredInquiries].sort((a, b) => {
-    let valA, valB;
-    switch (sortColumn) {
-      case "inquiry_number":
-        valA = a.inquiry_number?.toLowerCase() ?? "";
-        valB = b.inquiry_number?.toLowerCase() ?? "";
-        break;
-      case "name":
-        valA = a.name?.toLowerCase() ?? "";
-        valB = b.name?.toLowerCase() ?? "";
-        break;
-      case "created_at":
-      default:
-        valA = new Date(a.created_at ?? 0);
-        valB = new Date(b.created_at ?? 0);
-        break;
-    }
-    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-    return 0;
-  });
+  const sorted = useTableSort(filtered, sortColumn, sortOrder, SORT_CONFIG);
 
   const {
     totalPages,
     startIndex,
     currentItems: currentInquiries,
-  } = paginate(sortedInquiries);
+  } = paginate(sorted);
   const isAllSelected =
     currentInquiries.length > 0 &&
     selectedItems.length === currentInquiries.length;
-  const hasSelection = selectedItems.length > 0;
 
-  // ── Bulk action labels ──────────────────────────────────────────
+  // ── Bulk labels ──────────────────────────────────────────────────────────
   const bulkArchiveLabel = (() => {
-    if (!hasSelection) return "Archive";
-    const first = inquiries.find((p) => p.id === selectedItems[0]);
-    return first?.status === "archived" ? "Unarchive" : "Archive";
+    if (!selectedItems.length) return "Archive";
+    return inquiries.find((i) => i.id === selectedItems[0])?.status ===
+      "archived"
+      ? "Unarchive"
+      : "Archive";
   })();
 
   const bulkRespondedLabel = (() => {
-    if (!hasSelection) return "Mark as Responded";
-    const first = inquiries.find((p) => p.id === selectedItems[0]);
-    return first?.status === "responded"
+    if (!selectedItems.length) return "Mark as Responded";
+    return inquiries.find((i) => i.id === selectedItems[0])?.status ===
+      "responded"
       ? "Mark as Pending"
       : "Mark as Responded";
   })();
 
-  // ── Bulk actions ────────────────────────────────────────────────
+  // ── Bulk actions ─────────────────────────────────────────────────────────
   const handleBulkDelete = async () => {
     if (!window.confirm(`Delete ${selectedItems.length} inquiry(s)?`)) return;
     for (const id of selectedItems) await deleteInquiry(id);
@@ -149,7 +186,7 @@ const InquiriesTable = () => {
   };
 
   const handleBulkArchive = async () => {
-    const first = inquiries.find((p) => p.id === selectedItems[0]);
+    const first = inquiries.find((i) => i.id === selectedItems[0]);
     const isArchived = first?.status === "archived";
     const action = isArchived ? "restore" : "archive";
     if (
@@ -177,7 +214,7 @@ const InquiriesTable = () => {
   };
 
   const handleBulkResponded = async () => {
-    const first = inquiries.find((p) => p.id === selectedItems[0]);
+    const first = inquiries.find((i) => i.id === selectedItems[0]);
     const isResponded = first?.status === "responded";
     if (
       !window.confirm(
@@ -195,7 +232,7 @@ const InquiriesTable = () => {
     );
   };
 
-  // ── Row-level handlers ──────────────────────────────────────────
+  // ── Row actions ──────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     if (window.confirm("Delete this inquiry?")) {
       const result = await deleteInquiry(id);
@@ -244,238 +281,133 @@ const InquiriesTable = () => {
     if (!result.success) alert("Failed to update priority: " + result.message);
   };
 
-  // ── Status badge ────────────────────────────────────────────────
-  const getStatusBadge = (status) => {
-    const styles = {
-      pending: "bg-yellow-100 text-yellow-600",
-      responded: "bg-blue-100 text-blue-600",
-      cancelled: "bg-orange-100 text-orange-600",
-      archived: "bg-gray-100 text-gray-600",
-    };
-    const labels = {
-      pending: "Pending",
-      responded: "Responded",
-      cancelled: "Cancelled",
-      archived: "Archived",
-    };
-    return (
-      <span
-        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || "bg-gray-100 text-gray-600"}`}
-      >
-        {labels[status] || status}
-      </span>
-    );
-  };
-
   return (
     <div className="pb-4">
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Search and Filter */}
-        <div className="p-4 sm:p-6">
-          <div className="flex flex-col md:flex-row gap-3 items-start justify-between">
-            <div className="relative flex-1 w-full lg:max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by inquiry number, customer name..."
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full lg:w-[300px] pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full md:w-auto">
-              <CustomDropdown
-                value={priorityFilter}
-                onChange={handlePriorityChange}
-                options={priorityOptions}
-                placeholder="All Priority"
-                icon={Filter}
-              />
-              <CustomDropdown
-                value={statusFilter}
-                onChange={handleStatusChange}
-                options={statusOptions}
-                placeholder="All (Excluding Archived)"
-                icon={SlidersHorizontal}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="bg-gray-50 text-left">
-                <th className="min-w-[50px] px-6 pt-5 pb-4">
-                  <input
-                    type="checkbox"
-                    checked={isAllSelected}
-                    onChange={handleSelectAll(currentInquiries)}
-                    className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                  />
-                </th>
-                <th className="min-w-[180px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="inquiry_number"
-                    label="Inquiry Number"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[200px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="name"
-                    label="Customer"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[200px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  Product Type
-                </th>
-                <th className="min-w-[250px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  Service Type
-                </th>
-                <th className="min-w-[180px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="created_at"
-                    label="Created On"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[150px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  Priority
-                </th>
-                <th className="min-w-[150px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  Status
-                </th>
-                <th className="px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase text-end" />
-              </tr>
-            </thead>
-            <tbody>
-              {currentInquiries.length > 0 ? (
-                currentInquiries.map((inquiry, index) => (
-                  <tr
-                    key={inquiry.id}
-                    className={`${index !== currentInquiries.length - 1 ? "border-b border-gray-200" : ""} hover:bg-gray-50`}
-                  >
-                    <td className="px-6 pt-5 pb-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(inquiry.id)}
-                        onChange={() => handleSelectOne(inquiry.id)}
-                        className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                      />
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <Link
-                        to={`${basePath}/inquiries/view/${inquiry.inquiry_number}`}
-                        className="text-sm font-medium underline text-gray-900"
-                      >
-                        {inquiry.inquiry_number || "N/A"}
-                      </Link>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <p className="text-sm text-gray-500">
-                        {inquiry.name || "N/A"}
-                      </p>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <p className="text-sm text-gray-500">
-                        {inquiry.product_type || "N/A"}
-                      </p>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <p className="text-sm text-gray-500">
-                        {inquiry.service_type || "N/A"}
-                      </p>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <p className="text-sm text-gray-500">
-                        {inquiry.created_at
-                          ? new Date(inquiry.created_at).toLocaleDateString()
-                          : "N/A"}
-                      </p>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${inquiry.priority?.toLowerCase() === "high" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}
-                      >
-                        {inquiry.priority === "high" ? "High" : "Normal"}
-                      </span>
-                    </td>
-                    <td className="px-4 sm:px-6 py-5">
-                      {getStatusBadge(inquiry.status)}
-                    </td>
-                    <td className="text-end px-4 sm:px-6 py-5">
-                      <InquiryDropdown
-                        inquiryId={inquiry.id}
-                        inquiryNumber={inquiry.inquiry_number}
-                        status={inquiry.status}
-                        priority={inquiry.priority}
-                        onDelete={handleDelete}
-                        onArchive={handleArchive}
-                        onRestore={handleRestore}
-                        onResponded={handleResponded}
-                        onCancelled={handleCancelled}
-                        onPriorityChange={handleRowPriorityChange}
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="9" className="px-4 sm:px-6 py-12 text-center">
-                    <p className="text-gray-500 text-sm">
-                      No inquiries found matching your search criteria.
+      <TableLayout
+        searchValue={searchTerm}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Search by inquiry number, customer name..."
+        filters={[
+          {
+            value: priorityFilter,
+            onChange: setPriorityFilter,
+            options: PRIORITY_OPTIONS,
+            placeholder: "All Priority",
+            icon: Filter,
+          },
+          {
+            value: statusFilter,
+            onChange: handleStatusChange,
+            options: STATUS_OPTIONS,
+            placeholder: "All (Excluding Archived)",
+            icon: SlidersHorizontal,
+          },
+        ]}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        totalItems={sorted.length}
+        itemLabel="inquiries"
+        onPrevious={goToPrevious}
+        onNext={() => goToNext(totalPages)}
+        onGoToPage={goToPage}
+        getPageNumbers={getPageNumbers}
+        bulkCount={selectedItems.length}
+        onBulkDelete={handleBulkDelete}
+        onBulkArchive={handleBulkArchive}
+        bulkArchiveLabel={bulkArchiveLabel}
+        bulkExtraActions={[
+          {
+            label: "Mark as Cancelled",
+            icon: CircleX,
+            onClick: handleBulkCancelled,
+            className: "bg-red-500 hover:bg-red-600",
+          },
+          {
+            label: bulkRespondedLabel,
+            icon: CheckCheck,
+            onClick: handleBulkResponded,
+            className: "bg-green-500 hover:bg-green-600",
+          },
+        ]}
+        thead={
+          <TableHead
+            columns={COLUMNS}
+            isAllSelected={isAllSelected}
+            onSelectAll={handleSelectAll(currentInquiries)}
+            sortColumn={sortColumn}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+          />
+        }
+        tbody={
+          <tbody>
+            {currentInquiries.length > 0 ? (
+              currentInquiries.map((inquiry, index) => (
+                <TableRow
+                  key={inquiry.id}
+                  id={inquiry.id}
+                  isLast={index === currentInquiries.length - 1}
+                  isSelected={selectedItems.includes(inquiry.id)}
+                  onSelect={() => handleSelectOne(inquiry.id)}
+                  actions={
+                    <InquiryDropdown
+                      inquiryId={inquiry.id}
+                      inquiryNumber={inquiry.inquiry_number}
+                      status={inquiry.status}
+                      priority={inquiry.priority}
+                      onDelete={handleDelete}
+                      onArchive={handleArchive}
+                      onRestore={handleRestore}
+                      onResponded={handleResponded}
+                      onCancelled={handleCancelled}
+                      onPriorityChange={handleRowPriorityChange}
+                    />
+                  }
+                >
+                  <Td>
+                    <Link
+                      to={`${basePath}/inquiries/view/${inquiry.inquiry_number}`}
+                      className="text-sm font-medium underline text-gray-900"
+                    >
+                      {inquiry.inquiry_number || "N/A"}
+                    </Link>
+                  </Td>
+                  <Td>
+                    <p className="text-sm text-gray-500">
+                      {inquiry.name || "N/A"}
                     </p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          startIndex={startIndex}
-          totalItems={sortedInquiries.length}
-          itemLabel="inquiries"
-          onPrevious={goToPrevious}
-          onNext={() => goToNext(totalPages)}
-          onGoToPage={goToPage}
-          getPageNumbers={getPageNumbers}
-        />
-      </div>
-
-      {hasSelection && (
-        <BulkActionBar
-          count={selectedItems.length}
-          onDelete={handleBulkDelete}
-          onArchive={handleBulkArchive}
-          archiveLabel={bulkArchiveLabel}
-          extraActions={[
-            {
-              label: "Mark as Cancelled",
-              icon: CircleX,
-              onClick: handleBulkCancelled,
-              className: "bg-red-500 hover:bg-red-600",
-            },
-            {
-              label: bulkRespondedLabel,
-              icon: CheckCheck,
-              onClick: handleBulkResponded,
-              className: "bg-green-500 hover:bg-green-600",
-            },
-          ]}
-        />
-      )}
+                  </Td>
+                  <Td>
+                    <p className="text-sm text-gray-500">
+                      {inquiry.product_type || "N/A"}
+                    </p>
+                  </Td>
+                  <Td>
+                    <p className="text-sm text-gray-500">
+                      {inquiry.service_type || "N/A"}
+                    </p>
+                  </Td>
+                  <Td>
+                    <DateCell value={inquiry.created_at} />
+                  </Td>
+                  <Td>
+                    <PriorityBadge priority={inquiry.priority} />
+                  </Td>
+                  <Td>
+                    <InquiryStatusBadge status={inquiry.status} />
+                  </Td>
+                </TableRow>
+              ))
+            ) : (
+              <TableEmptyState
+                title="No inquiries found matching your search criteria."
+                colSpan={9}
+              />
+            )}
+          </tbody>
+        }
+      />
     </div>
   );
 };

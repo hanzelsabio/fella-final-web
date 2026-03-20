@@ -1,24 +1,64 @@
-import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { PackageSearch, Plus, Edit, Send } from "lucide-react";
 import { useProducts } from "../context/ProductContext";
-import { getImageUrl } from "../../../../../services";
-import { PackageSearch, Plus, Search, Filter, Edit, Send } from "lucide-react";
+import { getImageUrl } from "../../../../../services/imageUrl";
 
-import CustomDropdown from "../../../../components/common/CustomDropdown";
-import DraftDropdown from "../../../../components/common/Dropdown/ActionsDropdown/DraftDropdown";
-import SortableHeader from "../../../../components/common/SortableHeader";
-import TablePagination from "../../../../components/common/TablePagination";
-import BulkActionBar from "../../../../components/common/BulkActionBar";
+import useBasePath from "../../../../components/hooks/useBasePath";
+import useTableSort from "../../../../components/hooks/useTableSort";
 import { usePaginatedTable } from "../../../../components/hooks/usePaginatedTable";
 
+import TableHeader from "../../../../components/common/TableHeader";
+import TableLayout from "../../../../components/common/TableLayout";
+import TableHead from "../../../../components/common/TableHead";
+import TableRow from "../../../../components/common/TableRow";
+import Td from "../../../../components/common/Td";
+import TableEmptyState from "../../../../components/common/TableEmptyState";
+import DateCell from "../../../../components/common/DateCell";
+import ThumbnailCell from "../../../../components/common/ThumbnailCell";
+import DraftDropdown from "../../../../components/common/Dropdown/ActionsDropdown/DraftDropdown";
+
+// ── Draft-specific helpers ───────────────────────────────────────────────────
+const formatTimeAgo = (timestamp) => {
+  if (!timestamp) return "Never";
+  const diffMins = Math.floor((new Date() - new Date(timestamp)) / 60000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${Math.floor(diffHours / 24)}d ago`;
+};
+
+const getDraftThumbnail = (draft) => {
+  const first = draft.productImages?.[0];
+  if (!first) return null;
+  const raw =
+    first?.url || first?.preview || (typeof first === "string" ? first : null);
+  if (!raw) return null;
+  if (raw.startsWith("data:")) return raw;
+  return getImageUrl(raw);
+};
+
+const COLUMNS = [
+  { label: "Product", column: "productName", minWidth: "min-w-[200px]" },
+  { label: "Category", column: "category", minWidth: "min-w-[150px]" },
+  { label: "Price", column: "price", minWidth: "min-w-[150px]" },
+  { label: "Created On", column: "createdAt", minWidth: "min-w-[150px]" },
+  { label: "Last Saved", column: "lastSaved", minWidth: "min-w-[150px]" },
+  {
+    label: "Status",
+    column: "status",
+    minWidth: "min-w-[120px]",
+    sortable: false,
+  },
+];
+
+// ── Component ────────────────────────────────────────────────────────────────
 const DraftProductTable = () => {
   const { drafts, deleteDraft, publishDraft, categories } = useProducts();
-  const location = useLocation();
-  const basePath = location.pathname.startsWith("/staff") ? "/staff" : "/admin";
+  const basePath = useBasePath();
 
   const {
     searchTerm,
-    statusFilter,
     currentPage,
     sortColumn,
     sortOrder,
@@ -26,7 +66,6 @@ const DraftProductTable = () => {
     setSelectedItems,
     handleSort,
     handleSearchChange,
-    handleStatusChange,
     goToPage,
     goToPrevious,
     goToNext,
@@ -38,19 +77,15 @@ const DraftProductTable = () => {
     data: drafts,
     defaultSortColumn: "createdAt",
     defaultSortOrder: "desc",
-    defaultStatusFilter: "all", // ✅ drafts default to all
+    defaultStatusFilter: "all",
   });
 
-  // ── Category filter (extra — not in hook) ───────────────────────
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const handleCategoryChange = (value) => {
-    setCategoryFilter(value);
-  };
 
   const getCategoryName = (categoryId) => {
     if (!categoryId) return "N/A";
-    const category = categories.find((cat) => cat.id === parseInt(categoryId));
-    return category ? category.name : "N/A";
+    const cat = categories.find((c) => c.id === parseInt(categoryId));
+    return cat ? cat.name : "N/A";
   };
 
   const draftCategoryIds = [
@@ -59,71 +94,44 @@ const DraftProductTable = () => {
   const categoryOptions = [
     { value: "all", label: "All Categories" },
     ...draftCategoryIds.map((catId) => {
-      const category = categories.find((c) => c.id === parseInt(catId));
-      return {
-        value: catId,
-        label: category ? category.name : `Category ${catId}`,
-      };
+      const cat = categories.find((c) => c.id === parseInt(catId));
+      return { value: catId, label: cat ? cat.name : `Category ${catId}` };
     }),
   ];
 
-  const statusOptions = [
-    { value: "all", label: "All Drafts" },
-    { value: "draft", label: "Draft" },
-    { value: "published", label: "Published" },
-  ];
-
-  // ── Filter ──────────────────────────────────────────────────────
-  const filteredDrafts = drafts.filter((draft) => {
+  const filtered = drafts.filter((draft) => {
+    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      draft.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      draft.heading?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "all" || draft.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+      !term ||
+      draft.productName?.toLowerCase().includes(term) ||
+      draft.heading?.toLowerCase().includes(term);
+    return (
+      matchesSearch &&
+      (categoryFilter === "all" || draft.category === categoryFilter)
+    );
   });
 
-  // ── Sort ────────────────────────────────────────────────────────
-  const sortedDrafts = [...filteredDrafts].sort((a, b) => {
-    let valA, valB;
-    switch (sortColumn) {
-      case "productName":
-        valA = a.productName?.toLowerCase() ?? "";
-        valB = b.productName?.toLowerCase() ?? "";
-        break;
-      case "category":
-        valA = getCategoryName(a.category)?.toLowerCase() ?? "";
-        valB = getCategoryName(b.category)?.toLowerCase() ?? "";
-        break;
-      case "price":
-        valA = parseFloat(a.price ?? 0);
-        valB = parseFloat(b.price ?? 0);
-        break;
-      case "lastSaved":
-        valA = new Date(a.lastSaved ?? 0);
-        valB = new Date(b.lastSaved ?? 0);
-        break;
-      case "createdAt":
-      default:
-        valA = new Date(a.createdAt ?? 0);
-        valB = new Date(b.createdAt ?? 0);
-        break;
-    }
-    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-    return 0;
-  });
+  const SORT_CONFIG = [
+    { key: "productName", type: "string" },
+    { key: "price", type: "number" },
+    { key: "lastSaved", type: "date" },
+    { key: "createdAt", type: "date" },
+    {
+      key: "category",
+      type: "custom",
+      getValue: (d) => getCategoryName(d.category).toLowerCase(),
+    },
+  ];
+  const sorted = useTableSort(filtered, sortColumn, sortOrder, SORT_CONFIG);
 
   const {
     totalPages,
     startIndex,
     currentItems: currentDrafts,
-  } = paginate(sortedDrafts);
+  } = paginate(sorted);
   const isAllSelected =
     currentDrafts.length > 0 && selectedItems.length === currentDrafts.length;
-  const hasSelection = selectedItems.length > 0;
 
-  // ── Bulk actions ────────────────────────────────────────────────
   const handleBulkDelete = async () => {
     if (!window.confirm(`Delete ${selectedItems.length} draft(s)?`)) return;
     for (const id of selectedItems) await deleteDraft(id);
@@ -138,304 +146,147 @@ const DraftProductTable = () => {
     alert("Selected drafts published.");
   };
 
-  // ── Row-level actions ───────────────────────────────────────────
-  const handleDelete = (draftId) => {
-    if (window.confirm("Delete this draft?")) deleteDraft(draftId);
+  const handleDelete = (id) => {
+    if (window.confirm("Delete this draft?")) deleteDraft(id);
   };
-
-  const handlePublish = (draftId) => {
-    if (window.confirm("Publish this draft?")) publishDraft(draftId);
-  };
-
-  const formatTimeAgo = (timestamp) => {
-    if (!timestamp) return "Never";
-    const diffMins = Math.floor((new Date() - new Date(timestamp)) / 60000);
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${Math.floor(diffHours / 24)}d ago`;
-  };
-
-  const getDraftThumbnail = (draft) => {
-    const first = draft.productImages?.[0];
-    if (!first) return null;
-    const raw =
-      first?.url ||
-      first?.preview ||
-      (typeof first === "string" ? first : null);
-    if (!raw) return null;
-    if (raw.startsWith("data:")) return raw;
-    return getImageUrl(raw);
+  const handlePublish = (id) => {
+    if (window.confirm("Publish this draft?")) publishDraft(id);
   };
 
   return (
     <div className="pb-4">
-      {/* Header */}
-      <div className="border border-gray-200 rounded-lg bg-white p-4 sm:p-6 mb-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div>
-            <h2 className="text-md font-semibold">Manage Drafts</h2>
-            <p className="text-xs text-gray-600">
-              Edit and review all your product drafts from here.
-            </p>
-          </div>
-          <div className="flex text-xs gap-3 flex-shrink-0 self-end sm:self-auto">
-            <Link
-              to={`${basePath}/products`}
-              className="bg-white border border-gray-300 text-black rounded-md px-4 py-3 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <PackageSearch className="w-4 h-4" />
-                <span>All Products</span>
-              </div>
-            </Link>
-            <Link
-              to={`${basePath}/products/new`}
-              className="bg-black hover:bg-gray-800 text-white rounded-md px-4 py-3 transition-colors"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Plus className="w-4 h-4" />
-                <span>New Product</span>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <TableHeader
+        title="Manage Drafts"
+        subtitle="Edit and review all your product drafts from here."
+        actions={[
+          {
+            label: "All Products",
+            to: `${basePath}/products`,
+            icon: PackageSearch,
+            variant: "secondary",
+          },
+          {
+            label: "New Product",
+            to: `${basePath}/products/new`,
+            icon: Plus,
+            variant: "primary",
+          },
+        ]}
+      />
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Search and Filter */}
-        <div className="p-4 sm:p-6">
-          <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
-            <div className="relative flex-1 w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by product name or heading..."
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full md:w-[300px] pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-3 w-full md:w-auto">
-              <CustomDropdown
-                value={categoryFilter}
-                onChange={handleCategoryChange}
-                options={categoryOptions}
-                placeholder="All Categories"
-                icon={Filter}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="bg-gray-50 text-left">
-                <th className="min-w-[50px] px-6 pt-5 pb-4">
-                  <input
-                    type="checkbox"
-                    checked={isAllSelected}
-                    onChange={handleSelectAll(currentDrafts)}
-                    className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                  />
-                </th>
-                <th className="min-w-[200px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="productName"
-                    label="Product"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[150px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="category"
-                    label="Category"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[150px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="price"
-                    label="Price"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[150px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="createdAt"
-                    label="Created On"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[150px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  <SortableHeader
-                    column="lastSaved"
-                    label="Last Saved"
-                    sortColumn={sortColumn}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                  />
-                </th>
-                <th className="min-w-[120px] px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase">
-                  Status
-                </th>
-                <th className="px-4 sm:px-6 py-4 text-xs font-semibold text-gray-700 uppercase text-end" />
-              </tr>
-            </thead>
-            <tbody>
-              {currentDrafts.length > 0 ? (
-                currentDrafts.map((draft, index) => {
-                  const thumbnail = getDraftThumbnail(draft);
-                  return (
-                    <tr
-                      key={draft.id}
-                      className={`${index !== currentDrafts.length - 1 ? "border-b border-gray-200" : ""} hover:bg-gray-50`}
-                    >
-                      <td className="px-6 pt-5 pb-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.includes(draft.id)}
-                          onChange={() => handleSelectOne(draft.id)}
-                          className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                        />
-                      </td>
-                      <td className="px-4 sm:px-6 py-5">
-                        <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 flex-shrink-0">
-                            {thumbnail ? (
-                              <img
-                                src={thumbnail}
-                                alt={draft.productName || "Draft"}
-                                className="w-full h-full object-cover rounded"
-                                onError={(e) => {
-                                  e.target.style.display = "none";
-                                  e.target.nextSibling.style.display = "flex";
-                                }}
-                              />
-                            ) : null}
-                            <div
-                              className="w-full h-full bg-gray-100 rounded flex items-center justify-center"
-                              style={{ display: thumbnail ? "none" : "flex" }}
-                            >
-                              <span className="text-gray-400 text-xs">–</span>
-                            </div>
-                          </div>
-                          <span className="text-sm text-gray-900 font-medium">
-                            {draft.productName || "Untitled Draft"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-5">
-                        <p className="text-sm text-gray-500">
-                          {getCategoryName(draft.category)}
-                        </p>
-                      </td>
-                      <td className="px-4 sm:px-6 py-5">
-                        <p className="text-sm text-gray-500">
-                          {draft.price && parseFloat(draft.price) > 0
-                            ? `PHP ${parseFloat(draft.price).toFixed(2)}`
-                            : "N/A"}
-                        </p>
-                      </td>
-                      <td className="px-4 sm:px-6 py-5">
-                        <p className="text-sm text-gray-500">
-                          {draft.createdAt
-                            ? new Date(draft.createdAt).toLocaleDateString()
-                            : "N/A"}
-                        </p>
-                      </td>
-                      <td className="px-4 sm:px-6 py-5">
-                        <p className="text-sm text-gray-500">
-                          {formatTimeAgo(draft.lastSaved)}
-                        </p>
-                      </td>
-                      <td className="px-4 sm:px-6 py-5">
-                        <span className="inline-flex rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">
-                          Draft
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-5">
-                        <div className="flex items-center justify-end">
-                          <DraftDropdown
-                            draftId={draft.id}
-                            onDelete={handleDelete}
-                            onPublish={handlePublish}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan="8" className="px-4 sm:px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                        <Edit className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <p className="text-gray-500 text-sm font-medium">
-                        No drafts found
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        Start creating a product to save drafts
-                      </p>
-                      <Link
-                        to={`${basePath}/products/new`}
-                        className="mt-2 bg-black hover:bg-gray-800 text-white rounded-md px-4 py-2 text-xs transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Plus className="w-3 h-3" />
-                          <span>Create Product</span>
-                        </div>
-                      </Link>
+      <TableLayout
+        searchValue={searchTerm}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Search by product name or heading..."
+        filters={[
+          {
+            value: categoryFilter,
+            onChange: setCategoryFilter,
+            options: categoryOptions,
+            placeholder: "All Categories",
+          },
+        ]}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        totalItems={sorted.length}
+        itemLabel="drafts"
+        onPrevious={goToPrevious}
+        onNext={() => goToNext(totalPages)}
+        onGoToPage={goToPage}
+        getPageNumbers={getPageNumbers}
+        bulkCount={selectedItems.length}
+        onBulkDelete={handleBulkDelete}
+        onBulkArchive={handleBulkPublish}
+        bulkArchiveLabel="Publish"
+        bulkExtraActions={[
+          {
+            label: "Publish Selected",
+            icon: Send,
+            onClick: handleBulkPublish,
+            className: "bg-green-500 hover:bg-green-600",
+          },
+        ]}
+        thead={
+          <TableHead
+            columns={COLUMNS}
+            isAllSelected={isAllSelected}
+            onSelectAll={handleSelectAll(currentDrafts)}
+            sortColumn={sortColumn}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+          />
+        }
+        tbody={
+          <tbody>
+            {currentDrafts.length > 0 ? (
+              currentDrafts.map((draft, index) => (
+                <TableRow
+                  key={draft.id}
+                  id={draft.id}
+                  isLast={index === currentDrafts.length - 1}
+                  isSelected={selectedItems.includes(draft.id)}
+                  onSelect={() => handleSelectOne(draft.id)}
+                  actions={
+                    <DraftDropdown
+                      draftId={draft.id}
+                      onDelete={handleDelete}
+                      onPublish={handlePublish}
+                    />
+                  }
+                >
+                  <Td>
+                    <div className="flex items-center gap-3">
+                      <ThumbnailCell
+                        src={getDraftThumbnail(draft)}
+                        alt={draft.productName || "Draft"}
+                        fallbackLabel="–"
+                      />
+                      <span className="text-sm text-gray-900 font-medium">
+                        {draft.productName || "Untitled Draft"}
+                      </span>
                     </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          startIndex={startIndex}
-          totalItems={sortedDrafts.length}
-          itemLabel="drafts"
-          onPrevious={goToPrevious}
-          onNext={() => goToNext(totalPages)}
-          onGoToPage={goToPage}
-          getPageNumbers={getPageNumbers}
-        />
-      </div>
-
-      {hasSelection && (
-        <BulkActionBar
-          count={selectedItems.length}
-          onDelete={handleBulkDelete}
-          onArchive={handleBulkPublish}
-          archiveLabel="Publish"
-          extraActions={[
-            {
-              label: "Publish Selected",
-              icon: Send,
-              onClick: handleBulkPublish,
-              className: "bg-green-500 hover:bg-green-600",
-            },
-          ]}
-        />
-      )}
+                  </Td>
+                  <Td>
+                    <p className="text-sm text-gray-500">
+                      {getCategoryName(draft.category)}
+                    </p>
+                  </Td>
+                  <Td>
+                    <p className="text-sm text-gray-500">
+                      {draft.price && parseFloat(draft.price) > 0
+                        ? `PHP ${parseFloat(draft.price).toFixed(2)}`
+                        : "N/A"}
+                    </p>
+                  </Td>
+                  <Td>
+                    <DateCell value={draft.createdAt} />
+                  </Td>
+                  <Td>
+                    <p className="text-sm text-gray-500">
+                      {formatTimeAgo(draft.lastSaved)}
+                    </p>
+                  </Td>
+                  <Td>
+                    <span className="inline-flex rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">
+                      Draft
+                    </span>
+                  </Td>
+                </TableRow>
+              ))
+            ) : (
+              <TableEmptyState
+                icon={Edit}
+                title="No drafts found"
+                subtitle="Start creating a product to save drafts"
+                colSpan={8}
+                createLink={`${basePath}/products/new`}
+                createLabel="Create Product"
+              />
+            )}
+          </tbody>
+        }
+      />
     </div>
   );
 };

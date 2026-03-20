@@ -1,14 +1,17 @@
 import bcrypt from "bcrypt";
 import db from "../config/database.js";
+import dotenv from "dotenv";
 
 const seedAdmin = async () => {
+  dotenv.config();
+
   try {
     // ✏️ Change these to your preferred credentials
-    const email = "admin@example.com";
-    const password = "Admin@1234";
-    const first_name = "Super";
-    const last_name = "Admin";
-    const username = "superadmin";
+    const email = process.env.ADMIN_EMAIL;
+    const password = process.env.ADMIN_PASSWORD;
+    const first_name = process.env.ADMIN_FIRST_NAME;
+    const last_name = process.env.ADMIN_LAST_NAME;
+    const username = process.env.ADMIN_USERNAME;
 
     // Check if already exists
     const [existing] = await db.query(

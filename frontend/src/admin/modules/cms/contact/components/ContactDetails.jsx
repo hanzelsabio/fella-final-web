@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Save, Plus, Trash2, GripVertical } from "lucide-react";
 import api from "../../../../../services/api";
+import TableHeader from "../../../../components/common/TableHeader";
 
 const PLATFORM_OPTIONS = [
   "Facebook",
@@ -12,6 +13,12 @@ const PLATFORM_OPTIONS = [
   "Pinterest",
   "Threads",
   "Custom",
+];
+
+const STATUS_OPTIONS = [
+  { value: "all", label: "All Status" },
+  { value: "active", label: "Active" },
+  { value: "archived", label: "Archived" },
 ];
 
 const ContactDetails = () => {
@@ -42,7 +49,6 @@ const ContactDetails = () => {
         const links = data.social_links || [];
         setForm(formData);
         setSocialLinks(links);
-        // ✅ Store originals for comparison
         setOriginalForm(formData);
         setOriginalSocialLinks(links);
       })
@@ -52,41 +58,36 @@ const ContactDetails = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // ✅ Detect changes by comparing current vs original
   const hasChanges = useCallback(() => {
     if (!originalForm || !originalSocialLinks) return false;
-    const formChanged = JSON.stringify(form) !== JSON.stringify(originalForm);
-    const linksChanged =
-      JSON.stringify(socialLinks) !== JSON.stringify(originalSocialLinks);
-    return formChanged || linksChanged;
+    return (
+      JSON.stringify(form) !== JSON.stringify(originalForm) ||
+      JSON.stringify(socialLinks) !== JSON.stringify(originalSocialLinks)
+    );
   }, [form, socialLinks, originalForm, originalSocialLinks]);
 
   const handleChange = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const addSocialLink = () => {
+  const addSocialLink = () =>
     setSocialLinks((prev) => [
       ...prev,
       { id: `${Date.now()}`, platform: "Facebook", url: "", text: "" },
     ]);
-  };
 
-  const updateSocialLink = (id, key, value) => {
+  const updateSocialLink = (id, key, value) =>
     setSocialLinks((prev) =>
       prev.map((link) => (link.id === id ? { ...link, [key]: value } : link)),
     );
-  };
 
-  const removeSocialLink = (id) => {
+  const removeSocialLink = (id) =>
     setSocialLinks((prev) => prev.filter((link) => link.id !== id));
-  };
 
   const handleSave = async () => {
     setSaving(true);
     setMessage(null);
     try {
       await api.put("/contact", { ...form, social_links: socialLinks });
-      // ✅ Update originals after successful save so the bar disappears
       setOriginalForm({ ...form });
       setOriginalSocialLinks([...socialLinks]);
       setMessage({
@@ -110,48 +111,35 @@ const ContactDetails = () => {
 
   return (
     <div className="pb-6">
-      {/* Header */}
-      <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-5">
-          <div>
-            <h2 className="text-lg font-bold">Manage Contact</h2>
-            <p className="text-xs text-gray-600">
-              Customize your contact details, social links, and map shown on
-              your website.
-            </p>
-          </div>
-          <button
-            onClick={addSocialLink}
-            className="flex items-center gap-2 text-xs bg-black hover:bg-gray-800 text-white rounded-md px-4 py-3 self-end md:self-auto transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Social Link</span>
-          </button>
-        </div>
-      </div>
+      <TableHeader
+        title="Manage Contact"
+        subtitle="Customize your contact details, social links, and map shown on your website."
+        actions={[
+          {
+            label: "New Social Link",
+            onClick: addSocialLink,
+            icon: Plus,
+            variant: "primary",
+          },
+        ]}
+      />
+
       {message && (
         <div
-          className={`mb-4 px-4 py-3 rounded-lg text-xs font-medium border ${
-            message.type === "success"
-              ? "bg-green-50 border-green-200 text-green-600"
-              : "bg-red-50 border-red-200 text-red-500"
-          }`}
+          className={`mb-4 px-4 py-3 rounded-lg text-xs font-medium border ${message.type === "success" ? "bg-green-50 border-green-200 text-green-600" : "bg-red-50 border-red-200 text-red-500"}`}
         >
           {message.text}
         </div>
       )}
+
       {/* Social Links */}
       <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-5">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-800">
-              Social Links
-            </h3>
-            <p className="text-xs text-gray-500">
-              Add, edit, or remove social media accounts shown on your contact
-              page.
-            </p>
-          </div>
+        <div className="mb-2">
+          <h3 className="text-sm font-semibold text-gray-800">Social Links</h3>
+          <p className="text-xs text-gray-500">
+            Add, edit, or remove social media accounts shown on your contact
+            page.
+          </p>
         </div>
 
         {socialLinks.length === 0 ? (
@@ -248,6 +236,7 @@ const ContactDetails = () => {
           </div>
         )}
       </div>
+
       {/* Contact Info */}
       <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
         <h3 className="text-sm font-semibold text-gray-800 mb-4">
@@ -280,6 +269,7 @@ const ContactDetails = () => {
           </div>
         </div>
       </div>
+
       {/* Location & Map */}
       <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
         <h3 className="text-sm font-semibold text-gray-800 mb-4">
@@ -338,7 +328,7 @@ const ContactDetails = () => {
         </div>
       </div>
 
-      {/*  Sticky save bar — only visible when changes are detected */}
+      {/* Sticky save bar — visible only when changes detected */}
       {hasChanges() && (
         <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-gray-200 bg-white shadow-lg px-4 py-5">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">

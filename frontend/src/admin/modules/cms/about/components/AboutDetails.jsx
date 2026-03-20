@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { Save, ImagePlus, X } from "lucide-react";
 import { uploadAPI, getImageUrl } from "../../../../../services";
 import api from "../../../../../services/api";
-import Breadcrumb from "../../../../components/common/Breadcrumb";
+import TableHeader from "../../../../components/common/TableHeader";
 
 const AboutDetails = () => {
   const [heading, setHeading] = useState("");
   const [subheading, setSubheading] = useState("");
   const [body, setBody] = useState("");
-  const [image, setImage] = useState(null); // { file, preview } or null
+  const [image, setImage] = useState(null); // { file, preview }
   const [existingImage, setExistingImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -16,7 +16,6 @@ const AboutDetails = () => {
 
   const imageInputRef = useRef(null);
 
-  // ── Fetch current about data ────────────────────────────────────
   useEffect(() => {
     api
       .get("/about")
@@ -33,7 +32,6 @@ const AboutDetails = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // ── Image handler ───────────────────────────────────────────────
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -42,7 +40,6 @@ const AboutDetails = () => {
     reader.readAsDataURL(file);
   };
 
-  // ── Save ────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!heading.trim())
       return setMessage({ type: "error", text: "Heading is required" });
@@ -54,18 +51,16 @@ const AboutDetails = () => {
         const res = await uploadAPI.uploadImage(image.file, "about");
         imageUrl = res.data?.data?.url || imageUrl;
       }
-
       await api.put("/about", {
         heading: heading.trim(),
         subheading: subheading.trim() || null,
         body: body.trim() || null,
         image: imageUrl,
       });
-
       setExistingImage(imageUrl);
       setImage(null);
       setMessage({ type: "success", text: "About page updated successfully!" });
-    } catch (err) {
+    } catch {
       setMessage({ type: "error", text: "Failed to save changes" });
     } finally {
       setSaving(false);
@@ -82,27 +77,14 @@ const AboutDetails = () => {
     );
   }
 
+  const previewSrc = image?.preview || getImageUrl(existingImage);
+
   return (
     <div className="pb-6">
-      {/* Header */}
-      <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-5">
-          <div>
-            <h2 className="text-lg font-bold">Manage About</h2>
-            <p className="text-xs text-gray-600">
-              Edit the content displayed on the About section of your website.
-            </p>
-          </div>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex items-center gap-2 self-end sm:self-auto disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            <span>{saving ? "Saving..." : "Save Changes"}</span>
-          </button>
-        </div>
-      </div>
+      <TableHeader
+        title="Manage About"
+        subtitle="Edit the content displayed on the About section of your website."
+      />
 
       {/* Form */}
       <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 space-y-6">
@@ -120,11 +102,11 @@ const AboutDetails = () => {
             Background Image{" "}
             <span className="text-gray-400 font-normal">(Optional)</span>
           </label>
-          {image?.preview || existingImage ? (
+          {previewSrc ? (
             <div className="flex items-center gap-4">
               <div className="relative flex-shrink-0">
                 <img
-                  src={image?.preview || getImageUrl(existingImage)}
+                  src={previewSrc}
                   alt="About"
                   className="w-32 h-20 object-cover rounded border border-gray-200"
                 />
@@ -214,14 +196,10 @@ const AboutDetails = () => {
           <div
             className="relative rounded-lg overflow-hidden min-h-[160px] flex items-center justify-center"
             style={{
-              backgroundImage:
-                image?.preview || existingImage
-                  ? `url(${image?.preview || getImageUrl(existingImage)})`
-                  : undefined,
+              backgroundImage: previewSrc ? `url(${previewSrc})` : undefined,
               backgroundSize: "cover",
               backgroundPosition: "center",
-              backgroundColor:
-                !image?.preview && !existingImage ? "#111" : undefined,
+              backgroundColor: !previewSrc ? "#111" : undefined,
             }}
           >
             <div className="absolute inset-0 bg-black/70" />
@@ -235,6 +213,23 @@ const AboutDetails = () => {
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Sticky save bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-gray-200 bg-white shadow-lg px-4 py-5">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+          <p className="text-xs text-gray-500">
+            Save your changes to update the About section.
+          </p>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            <Save className="w-4 h-4" />
+            <span>{saving ? "Saving..." : "Save Changes"}</span>
+          </button>
         </div>
       </div>
     </div>

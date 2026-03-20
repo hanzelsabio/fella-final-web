@@ -1,17 +1,17 @@
 import { useState } from "react";
-import {
-  Plus,
-  Trash2,
-  Archive,
-  Pencil,
-  X,
-  Check,
-  Filter,
-  Search,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { useFaqs } from "../context/FaqsContext";
+
+import useBulkActions from "../../../../components/hooks/useBulkActions";
+import useCmsInlineEdit from "../../../../components/hooks/useCmsInlineEdit";
+import useCmsFilter from "../../../../components/hooks/useCmsFilter";
+import { STATUS_OPTIONS } from "../../../../components/common/tableConstants";
+
+import TableHeader from "../../../../components/common/TableHeader";
+import CmsTableToolbar from "../../../../components/common/CmsTableToolbar";
+import StatusBadge from "../../../../components/common/StatusBadge";
+import InlineActionButtons from "../../../../components/common/InlineActionButtons";
 import BulkActionBar from "../../../../components/common/BulkActionBar";
-import CustomDropdown from "../../../../components/common/CustomDropdown";
 
 const FaqsTable = () => {
   const {
@@ -24,25 +24,22 @@ const FaqsTable = () => {
     restoreFaq,
   } = useFaqs();
 
+  const { searchTerm, setSearchTerm, statusFilter, setStatusFilter } =
+    useCmsFilter();
+  const {
+    editingId,
+    editForm,
+    showAddRow,
+    newForm,
+    startEdit,
+    cancelEdit,
+    setEditField,
+    openAddRow,
+    closeAddRow,
+    setNewField,
+  } = useCmsInlineEdit({ emptyForm: { question: "", answer: "" } });
+
   const [selectedFaqs, setSelectedFaqs] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("active");
-  const [searchTerm, setSearchTerm] = useState("");
-
-  // ── Inline add state ────────────────────────────────────────────
-  const [showAddRow, setShowAddRow] = useState(false);
-  const [newQuestion, setNewQuestion] = useState("");
-  const [newAnswer, setNewAnswer] = useState("");
-
-  // ── Inline edit state ───────────────────────────────────────────
-  const [editingId, setEditingId] = useState(null);
-  const [editQuestion, setEditQuestion] = useState("");
-  const [editAnswer, setEditAnswer] = useState("");
-
-  const statusOptions = [
-    { value: "all", label: "All Status" },
-    { value: "active", label: "Active" },
-    { value: "archived", label: "Archived" },
-  ];
 
   // ── Filter ──────────────────────────────────────────────────────
   const filtered = faqs.filter((f) => {
@@ -54,51 +51,47 @@ const FaqsTable = () => {
     );
   });
 
-  // ── Checkbox ────────────────────────────────────────────────────
+  const isAllSelected =
+    filtered.length > 0 && selectedFaqs.length === filtered.length;
   const handleSelectAll = (e) =>
     setSelectedFaqs(e.target.checked ? filtered.map((f) => f.id) : []);
   const handleSelectOne = (id) =>
     setSelectedFaqs((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-  const isAllSelected =
-    filtered.length > 0 && selectedFaqs.length === filtered.length;
-  const hasSelection = selectedFaqs.length > 0;
 
-  // ── Add ─────────────────────────────────────────────────────────
+  const { handleBulkDelete, handleBulkArchive, bulkArchiveLabel } =
+    useBulkActions({
+      items: faqs,
+      selectedItems: selectedFaqs,
+      setSelectedItems: setSelectedFaqs,
+      actions: { delete: deleteFaq, archive: archiveFaq, restore: restoreFaq },
+      labels: { singular: "FAQ", plural: "FAQs" },
+    });
+
+  // ── Row actions ──────────────────────────────────────────────────
   const handleAdd = async () => {
-    if (!newQuestion.trim() || !newAnswer.trim())
+    if (!newForm.question.trim() || !newForm.answer.trim())
       return alert("Question and answer are required.");
     const result = await addFaq({
-      question: newQuestion.trim(),
-      answer: newAnswer.trim(),
+      question: newForm.question.trim(),
+      answer: newForm.answer.trim(),
     });
-    if (result.success) {
-      setNewQuestion("");
-      setNewAnswer("");
-      setShowAddRow(false);
-    } else alert("Failed: " + result.message);
-  };
-
-  // ── Edit ────────────────────────────────────────────────────────
-  const startEdit = (faq) => {
-    setEditingId(faq.id);
-    setEditQuestion(faq.question);
-    setEditAnswer(faq.answer);
-  };
-
-  const handleSaveEdit = async (id) => {
-    if (!editQuestion.trim() || !editAnswer.trim())
-      return alert("Question and answer are required.");
-    const result = await updateFaq(id, {
-      question: editQuestion.trim(),
-      answer: editAnswer.trim(),
-    });
-    if (result.success) setEditingId(null);
+    if (result.success) closeAddRow();
     else alert("Failed: " + result.message);
   };
 
-  // ── Delete / Archive ────────────────────────────────────────────
+  const handleSaveEdit = async (id) => {
+    if (!editForm.question.trim() || !editForm.answer.trim())
+      return alert("Question and answer are required.");
+    const result = await updateFaq(id, {
+      question: editForm.question.trim(),
+      answer: editForm.answer.trim(),
+    });
+    if (result.success) cancelEdit();
+    else alert("Failed: " + result.message);
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm("Delete this FAQ?")) {
       const result = await deleteFaq(id);
@@ -108,96 +101,38 @@ const FaqsTable = () => {
 
   const handleArchive = async (id) => {
     const faq = faqs.find((f) => f.id === id);
-    if (faq?.status === "archived") {
-      const result = await restoreFaq(id);
-      if (!result.success) alert("Failed: " + result.message);
-    } else {
-      if (window.confirm("Archive this FAQ?")) {
-        const result = await archiveFaq(id);
-        if (!result.success) alert("Failed: " + result.message);
-      }
-    }
-  };
-
-  // ── Bulk ────────────────────────────────────────────────────────
-  const handleBulkDelete = async () => {
-    if (!window.confirm(`Delete ${selectedFaqs.length} FAQ(s)?`)) return;
-    for (const id of selectedFaqs) await deleteFaq(id);
-    setSelectedFaqs([]);
-  };
-
-  const handleBulkArchive = async () => {
-    const first = faqs.find((f) => f.id === selectedFaqs[0]);
-    const isArchived = first?.status === "archived";
-    const action = isArchived ? "restore" : "archive";
-    if (
-      !window.confirm(
-        `${action.charAt(0).toUpperCase() + action.slice(1)} ${selectedFaqs.length} FAQ(s)?`,
-      )
-    )
+    if (faq?.status !== "archived" && !window.confirm("Archive this FAQ?"))
       return;
-    for (const id of selectedFaqs) {
-      if (isArchived) await restoreFaq(id);
-      else await archiveFaq(id);
-    }
-    setSelectedFaqs([]);
+    const result = await (faq?.status === "archived"
+      ? restoreFaq(id)
+      : archiveFaq(id));
+    if (!result.success) alert("Failed: " + result.message);
   };
-
-  const bulkArchiveLabel = (() => {
-    if (!hasSelection) return "Archive";
-    const first = faqs.find((f) => f.id === selectedFaqs[0]);
-    return first?.status === "archived" ? "Unarchive" : "Archive";
-  })();
 
   return (
     <div className="pb-6">
-      {/* Header */}
-      <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-5">
-          <div>
-            <h2 className="text-lg font-bold">Manage FAQs</h2>
-            <p className="text-xs text-gray-600">
-              FAQs shown here will appear on your website.
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setShowAddRow(true);
-              setNewQuestion("");
-              setNewAnswer("");
-            }}
-            className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex items-center gap-2 self-end sm:self-auto"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New FAQ</span>
-          </button>
-        </div>
-      </div>
+      <TableHeader
+        title="Manage FAQs"
+        subtitle="FAQs shown here will appear on your website."
+        actions={[
+          {
+            label: "New FAQ",
+            onClick: () => openAddRow(),
+            icon: Plus,
+            variant: "primary",
+          },
+        ]}
+      />
 
-      {/* Table */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Search and Filter */}
-        <div className="p-4 sm:p-6">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="relative flex-1 w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by question or answer..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full lg:w-[300px] pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-              />
-            </div>
-            <CustomDropdown
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={statusOptions}
-              placeholder="Active"
-              icon={Filter}
-            />
-          </div>
-        </div>
+        <CmsTableToolbar
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search by question or answer..."
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          statusOptions={STATUS_OPTIONS}
+        />
 
         <div className="overflow-x-auto">
           <table className="w-full table-auto">
@@ -224,14 +159,13 @@ const FaqsTable = () => {
               </tr>
             </thead>
             <tbody>
-              {/* Inline add row */}
               {showAddRow && (
                 <tr className="border-b border-blue-100 bg-blue-50">
                   <td className="px-6 py-4" />
                   <td className="px-4 py-4">
                     <textarea
-                      value={newQuestion}
-                      onChange={(e) => setNewQuestion(e.target.value)}
+                      value={newForm.question}
+                      onChange={(e) => setNewField("question", e.target.value)}
                       placeholder="Enter question..."
                       rows={2}
                       autoFocus
@@ -240,8 +174,8 @@ const FaqsTable = () => {
                   </td>
                   <td className="px-4 py-4">
                     <textarea
-                      value={newAnswer}
-                      onChange={(e) => setNewAnswer(e.target.value)}
+                      value={newForm.answer}
+                      onChange={(e) => setNewField("answer", e.target.value)}
                       placeholder="Enter answer..."
                       rows={2}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
@@ -253,20 +187,11 @@ const FaqsTable = () => {
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={handleAdd}
-                        className="p-1.5 rounded-md bg-black text-white hover:bg-gray-800 transition-colors"
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setShowAddRow(false)}
-                        className="p-1.5 rounded-md border border-gray-300 hover:bg-gray-100 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <InlineActionButtons
+                      isEditing
+                      onSave={handleAdd}
+                      onCancel={closeAddRow}
+                    />
                   </td>
                 </tr>
               )}
@@ -274,7 +199,7 @@ const FaqsTable = () => {
               {loading ? (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="5"
                     className="px-4 py-12 text-center text-sm text-gray-400"
                   >
                     Loading...
@@ -297,8 +222,10 @@ const FaqsTable = () => {
                     <td className="px-4 sm:px-6 py-5">
                       {editingId === faq.id ? (
                         <textarea
-                          value={editQuestion}
-                          onChange={(e) => setEditQuestion(e.target.value)}
+                          value={editForm.question}
+                          onChange={(e) =>
+                            setEditField("question", e.target.value)
+                          }
                           rows={2}
                           autoFocus
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
@@ -314,8 +241,10 @@ const FaqsTable = () => {
                     <td className="px-4 sm:px-6 py-5">
                       {editingId === faq.id ? (
                         <textarea
-                          value={editAnswer}
-                          onChange={(e) => setEditAnswer(e.target.value)}
+                          value={editForm.answer}
+                          onChange={(e) =>
+                            setEditField("answer", e.target.value)
+                          }
                           rows={3}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
                         />
@@ -328,66 +257,30 @@ const FaqsTable = () => {
                       )}
                     </td>
                     <td className="px-4 sm:px-6 py-5">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${faq.status === "archived" ? "bg-gray-100 text-gray-600" : "bg-green-100 text-green-600"}`}
-                      >
-                        {faq.status === "archived" ? "Archived" : "Active"}
-                      </span>
+                      <StatusBadge status={faq.status} />
                     </td>
                     <td className="px-4 sm:px-6 py-5">
-                      <div className="flex items-center justify-end gap-2">
-                        {editingId === faq.id ? (
-                          <>
-                            <button
-                              onClick={() => handleSaveEdit(faq.id)}
-                              className="p-1.5 rounded-md bg-black text-white hover:bg-gray-800 transition-colors"
-                            >
-                              <Check className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setEditingId(null)}
-                              className="p-1.5 rounded-md border border-gray-300 hover:bg-gray-100 transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => startEdit(faq)}
-                              className="p-1.5 rounded-md border border-gray-300 hover:bg-gray-100 transition-colors"
-                              title="Edit"
-                            >
-                              <Pencil className="w-4 h-4 text-gray-600" />
-                            </button>
-                            <button
-                              onClick={() => handleArchive(faq.id)}
-                              className="p-1.5 rounded-md border border-gray-300 hover:bg-gray-100 transition-colors"
-                              title={
-                                faq.status === "archived"
-                                  ? "Restore"
-                                  : "Archive"
-                              }
-                            >
-                              <Archive className="w-4 h-4 text-gray-600" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(faq.id)}
-                              className="p-1.5 rounded-md border border-red-200 hover:bg-red-50 transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </button>
-                          </>
-                        )}
-                      </div>
+                      <InlineActionButtons
+                        isEditing={editingId === faq.id}
+                        onEdit={() =>
+                          startEdit(faq, (f) => ({
+                            question: f.question,
+                            answer: f.answer,
+                          }))
+                        }
+                        onSave={() => handleSaveEdit(faq.id)}
+                        onCancel={cancelEdit}
+                        onArchive={() => handleArchive(faq.id)}
+                        onDelete={() => handleDelete(faq.id)}
+                        status={faq.status}
+                      />
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="5"
                     className="text-center py-12 text-sm text-gray-400"
                   >
                     No FAQs found
@@ -399,7 +292,7 @@ const FaqsTable = () => {
         </div>
       </div>
 
-      {hasSelection && (
+      {selectedFaqs.length > 0 && (
         <BulkActionBar
           count={selectedFaqs.length}
           onDelete={handleBulkDelete}

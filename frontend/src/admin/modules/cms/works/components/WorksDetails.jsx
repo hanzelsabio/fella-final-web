@@ -1,71 +1,69 @@
 import { useState, useRef } from "react";
-import {
-  Plus,
-  Trash2,
-  Archive,
-  X,
-  Filter,
-  Search,
-  ImagePlus,
-} from "lucide-react";
+import { Plus, Trash2, Archive, X, ImagePlus } from "lucide-react";
 import { useWorks } from "../context/WorksContext";
 import { uploadAPI, getImageUrl } from "../../../../../services";
+
+import useBulkActions from "../../../../components/hooks/useBulkActions";
+import useCmsFilter from "../../../../components/hooks/useCmsFilter";
+import { STATUS_OPTIONS } from "../../../../components/common/tableConstants";
+
+import TableHeader from "../../../../components/common/TableHeader";
+import CmsTableToolbar from "../../../../components/common/CmsTableToolbar";
+import StatusBadge from "../../../../components/common/StatusBadge";
 import BulkActionBar from "../../../../components/common/BulkActionBar";
-import CustomDropdown from "../../../../components/common/CustomDropdown";
 
 const WorksDetails = () => {
-  const {
-    works,
-    loading,
-    addWork,
-    updateWork,
-    deleteWork,
-    archiveWork,
-    restoreWork,
-  } = useWorks();
+  const { works, loading, addWork, deleteWork, archiveWork, restoreWork } =
+    useWorks();
+
+  const { searchTerm, setSearchTerm, statusFilter, setStatusFilter } =
+    useCmsFilter();
 
   const [selectedWorks, setSelectedWorks] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("active");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [uploadQueue, setUploadQueue] = useState([]);
   const [saving, setSaving] = useState(false);
 
-  // ── Upload queue state ──────────────────────────────────────────
-  const [uploadQueue, setUploadQueue] = useState([]); // [{ file, preview }]
   const uploadInputRef = useRef(null);
-
-  const statusOptions = [
-    { value: "all", label: "All Status" },
-    { value: "active", label: "Active" },
-    { value: "archived", label: "Archived" },
-  ];
 
   // ── Filter ──────────────────────────────────────────────────────
   const filtered = works.filter(
     (w) => statusFilter === "all" || w.status === statusFilter,
   );
 
-  // ── Checkbox ────────────────────────────────────────────────────
+  const isAllSelected =
+    filtered.length > 0 && selectedWorks.length === filtered.length;
   const handleSelectAll = (e) =>
     setSelectedWorks(e.target.checked ? filtered.map((w) => w.id) : []);
   const handleSelectOne = (id) =>
     setSelectedWorks((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-  const isAllSelected =
-    filtered.length > 0 && selectedWorks.length === filtered.length;
-  const hasSelection = selectedWorks.length > 0;
 
-  // ── Upload queue handlers ───────────────────────────────────────
+  const { handleBulkDelete, handleBulkArchive, bulkArchiveLabel } =
+    useBulkActions({
+      items: works,
+      selectedItems: selectedWorks,
+      setSelectedItems: setSelectedWorks,
+      actions: {
+        delete: deleteWork,
+        archive: archiveWork,
+        restore: restoreWork,
+      },
+      labels: { singular: "work", plural: "works" },
+    });
+
+  // ── Upload queue ────────────────────────────────────────────────
   const handleFilesSelected = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const newItems = files.map((file) => ({
-      id: `${Date.now()}-${Math.random()}`,
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setUploadQueue((prev) => [...prev, ...newItems]);
-    // Reset input so same files can be re-selected
+    setUploadQueue((prev) => [
+      ...prev,
+      ...files.map((file) => ({
+        id: `${Date.now()}-${Math.random()}`,
+        file,
+        preview: URL.createObjectURL(file),
+      })),
+    ]);
     if (uploadInputRef.current) uploadInputRef.current.value = "";
   };
 
@@ -91,7 +89,6 @@ const WorksDetails = () => {
     }
   };
 
-  // ── Delete / Archive ────────────────────────────────────────────
   const handleDelete = async (id) => {
     if (window.confirm("Delete this work?")) {
       const result = await deleteWork(id);
@@ -101,76 +98,36 @@ const WorksDetails = () => {
 
   const handleArchive = async (id) => {
     const work = works.find((w) => w.id === id);
-    if (work?.status === "archived") {
-      const result = await restoreWork(id);
-      if (!result.success) alert("Failed: " + result.message);
-    } else {
-      if (window.confirm("Archive this work?")) {
-        const result = await archiveWork(id);
-        if (!result.success) alert("Failed: " + result.message);
-      }
-    }
-  };
-
-  // ── Bulk actions ────────────────────────────────────────────────
-  const handleBulkDelete = async () => {
-    if (!window.confirm(`Delete ${selectedWorks.length} work(s)?`)) return;
-    for (const id of selectedWorks) await deleteWork(id);
-    setSelectedWorks([]);
-  };
-
-  const handleBulkArchive = async () => {
-    const first = works.find((w) => w.id === selectedWorks[0]);
-    const isArchived = first?.status === "archived";
-    const action = isArchived ? "restore" : "archive";
-    if (
-      !window.confirm(
-        `${action.charAt(0).toUpperCase() + action.slice(1)} ${selectedWorks.length} work(s)?`,
-      )
-    )
+    if (work?.status !== "archived" && !window.confirm("Archive this work?"))
       return;
-    for (const id of selectedWorks) {
-      if (isArchived) await restoreWork(id);
-      else await archiveWork(id);
-    }
-    setSelectedWorks([]);
+    const result = await (work?.status === "archived"
+      ? restoreWork(id)
+      : archiveWork(id));
+    if (!result.success) alert("Failed: " + result.message);
   };
-
-  const bulkArchiveLabel = (() => {
-    if (!hasSelection) return "Archive";
-    const first = works.find((w) => w.id === selectedWorks[0]);
-    return first?.status === "archived" ? "Unarchive" : "Archive";
-  })();
 
   return (
     <div className="pb-6">
-      {/* Header */}
-      <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-5">
-          <div>
-            <h2 className="text-lg font-bold">Manage Gallery</h2>
-            <p className="text-xs text-gray-600">
-              Gallery images shown here will appear in the Our Works section on
-              your website.
-            </p>
-          </div>
-          <button
-            onClick={() => uploadInputRef.current?.click()}
-            className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex items-center gap-2 self-end sm:self-auto"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Images</span>
-          </button>
-          <input
-            ref={uploadInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleFilesSelected}
-          />
-        </div>
-      </div>
+      <TableHeader
+        title="Manage Gallery"
+        subtitle="Gallery images shown here will appear in the Our Works section on your website."
+        actions={[
+          {
+            label: "New Images",
+            onClick: () => uploadInputRef.current?.click(),
+            icon: Plus,
+            variant: "primary",
+          },
+        ]}
+      />
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFilesSelected}
+      />
 
       {/* Upload Queue */}
       {uploadQueue.length > 0 && (
@@ -203,7 +160,6 @@ const WorksDetails = () => {
                 </button>
               </div>
             ))}
-            {/* Add more button */}
             <button
               onClick={() => uploadInputRef.current?.click()}
               className="h-24 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center gap-1 hover:border-gray-400 hover:bg-white transition-colors"
@@ -232,32 +188,16 @@ const WorksDetails = () => {
         </div>
       )}
 
-      {/* Table */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Search and Filter */}
-        <div className="p-4 sm:p-6">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="relative flex-1 w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by work ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full lg:w-[300px] pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
-              />
-            </div>
-            <CustomDropdown
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={statusOptions}
-              placeholder="Active"
-              icon={Filter}
-            />
-          </div>
-        </div>
+        <CmsTableToolbar
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search by work ID..."
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          statusOptions={STATUS_OPTIONS}
+        />
 
-        {/* Gallery Grid view */}
         {loading ? (
           <div className="px-4 py-12 text-center text-sm text-gray-400">
             Loading...
@@ -268,11 +208,7 @@ const WorksDetails = () => {
               {filtered.map((work) => (
                 <div
                   key={work.id}
-                  className={`relative group rounded-lg overflow-hidden border-2 transition-colors ${
-                    selectedWorks.includes(work.id)
-                      ? "border-blue-500"
-                      : "border-transparent"
-                  }`}
+                  className={`relative group rounded-lg overflow-hidden border-2 transition-colors ${selectedWorks.includes(work.id) ? "border-blue-500" : "border-transparent"}`}
                 >
                   <img
                     src={getImageUrl(work.image)}
@@ -280,7 +216,6 @@ const WorksDetails = () => {
                     className={`w-full h-32 object-cover ${work.status === "archived" ? "opacity-40 grayscale" : ""}`}
                   />
 
-                  {/* Overlay on hover */}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
                     <div className="flex justify-between items-start">
                       <input
@@ -289,11 +224,7 @@ const WorksDetails = () => {
                         onChange={() => handleSelectOne(work.id)}
                         className="w-4 h-4 rounded border-gray-300 cursor-pointer"
                       />
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${work.status === "archived" ? "bg-gray-100 text-gray-600" : "bg-green-100 text-green-600"}`}
-                      >
-                        {work.status === "archived" ? "Archived" : "Active"}
-                      </span>
+                      <StatusBadge status={work.status} />
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-white font-mono">
@@ -320,7 +251,6 @@ const WorksDetails = () => {
                     </div>
                   </div>
 
-                  {/* Always-visible checkbox when selected */}
                   {selectedWorks.includes(work.id) && (
                     <div className="absolute top-2 left-2">
                       <input
@@ -335,7 +265,6 @@ const WorksDetails = () => {
               ))}
             </div>
 
-            {/* Footer count + select all */}
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center gap-3">
                 <input
@@ -346,7 +275,8 @@ const WorksDetails = () => {
                 />
                 <span className="text-sm text-gray-600">
                   {filtered.length} image{filtered.length !== 1 ? "s" : ""}
-                  {hasSelection && ` — ${selectedWorks.length} selected`}
+                  {selectedWorks.length > 0 &&
+                    ` — ${selectedWorks.length} selected`}
                 </span>
               </div>
             </div>
@@ -358,7 +288,7 @@ const WorksDetails = () => {
         )}
       </div>
 
-      {hasSelection && (
+      {selectedWorks.length > 0 && (
         <BulkActionBar
           count={selectedWorks.length}
           onDelete={handleBulkDelete}
