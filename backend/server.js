@@ -1,6 +1,4 @@
 import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -11,12 +9,12 @@ import {
   notFoundHandler,
 } from "./middleware/errorHandler.js";
 
-import productRoutes from "./routes/products.js";
-import draftRoutes from "./routes/drafts.js";
-import serviceRoutes from "./routes/services.js";
-import categoryRoutes from "./routes/categories.js";
-import colorRoutes from "./routes/colors.js";
-import uploadRoutes from "./routes/upload.js";
+import productRoutes from "./routes/productRoutes.js";
+import draftRoutes from "./routes/draftRoutes.js";
+import serviceRoutes from "./routes/serviceRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
+import colorRoutes from "./routes/colorwayRoutes.js";
+import uploadRoutes from "./routes/uploadRoutes.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
 import supplierRoutes from "./routes/supplierRoutes.js";
@@ -25,9 +23,9 @@ import systemUserRoutes from "./routes/systemUserRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
 import heroRoutes from "./routes/heroRoutes.js";
-import worksRoutes from "./routes/worksRoutes.js";
+import worksRoutes from "./routes/workRoutes.js";
 import aboutRoutes from "./routes/aboutRoutes.js";
-import reviewsRoutes from "./routes/reviewsRoutes.js";
+import reviewsRoutes from "./routes/reviewRoutes.js";
 import faqsRoutes from "./routes/faqsRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -40,7 +38,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ── 1. Security (replaces manual cors + bodyParser) ───────────────────────────
+// ── 1. Security ───────────────────────────────────────────────────────────────
 setupSecurity(app);
 
 // ── 2. Static uploads ─────────────────────────────────────────────────────────
