@@ -48,7 +48,7 @@ const AdminDashboardStats = () => {
     {
       label: "System Users",
       value: systemUsers.length,
-      to: "/admin/users",
+      to: "/admin/system-users",
     },
     {
       label: "Listed Items",

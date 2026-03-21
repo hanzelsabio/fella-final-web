@@ -1,1 +1,15 @@
+# Dependencies
+node_modules/
+
+# Environment variables — NEVER commit this
 .env
+
+# Uploaded files — these should be on your server, not in git
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store

@@ -1,8 +1,8 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import useBasePath from "../hooks/useBasePath";
 
 function Logo({ className = "" }) {
-  const location = useLocation();
-  const basePath = location.pathname.startsWith("/staff") ? "/staff" : "/admin";
+  const basePath = useBasePath();
 
   return (
     <Link to={`${basePath}/dashboard`}>

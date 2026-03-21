@@ -2,22 +2,21 @@ import { useState } from "react";
 import { Plus, Filter } from "lucide-react";
 import { useSystemUser } from "../context/SystemUserContext";
 
-import useBasePath from "../../../../components/hooks/useBasePath";
 import useRowActions from "../../../../components/hooks/useRowActions";
 import useBulkActions from "../../../../components/hooks/useBulkActions";
 import useTableSort from "../../../../components/hooks/useTableSort";
 import { usePaginatedTable } from "../../../../components/hooks/usePaginatedTable";
-import { STATUS_OPTIONS } from "../../../../components/common/tableConstants";
+import { STATUS_OPTIONS } from "../../../../components/common/Table/tableConstants";
 
-import TableHeader from "../../../../components/common/TableHeader";
-import TableLayout from "../../../../components/common/TableLayout";
-import TableHead from "../../../../components/common/TableHead";
-import TableRow from "../../../../components/common/TableRow";
-import TableEmptyState from "../../../../components/common/TableEmptyState";
+import TableHeader from "../../../../components/common/Table/TableHeader";
+import TableLayout from "../../../../components/common/Table/TableLayout";
+import TableHead from "../../../../components/common/Table/TableHead";
+import TableRow from "../../../../components/common/Table/TableRow";
+import TableEmptyState from "../../../../components/common/Table/TableEmptyState";
 import StatusBadge from "../../../../components/common/StatusBadge";
-import DateCell from "../../../../components/common/DateCell";
-import Td from "../../../../components/common/Td";
-import SystemUserDropdown from "../../../../components/common/Dropdown/ActionsDropdown/SystemUserDropdown";
+import DateCell from "../../../../components/common/Cell/DateCell";
+import Td from "../../../../components/common/Table/Td";
+import { SystemUserDropdown } from "../../../../components/common/Dropdown/Dropdowns";
 
 // ── Role badge (users-specific) ──────────────────────────────────────────────
 const ROLE_BADGE_CLASSES = {

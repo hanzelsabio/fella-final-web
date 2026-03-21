@@ -1,6 +1,6 @@
 import TableToolbar from "./TableToolbar";
 import TablePagination from "./TablePagination";
-import BulkActionBar from "./BulkActionBar";
+import BulkActionBar from "../Action/BulkActionBar";
 
 /**
  * TableLayout

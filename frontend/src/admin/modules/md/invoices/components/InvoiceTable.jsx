@@ -7,13 +7,13 @@ import useTableFilter from "../../../../components/hooks/useTableFilter";
 import useTableSort from "../../../../components/hooks/useTableSort";
 import { usePaginatedTable } from "../../../../components/hooks/usePaginatedTable";
 
-import TableLayout from "../../../../components/common/TableLayout";
-import TableHead from "../../../../components/common/TableHead";
-import TableRow from "../../../../components/common/TableRow";
-import TableEmptyState from "../../../../components/common/TableEmptyState";
-import DateCell from "../../../../components/common/DateCell";
-import Td from "../../../../components/common/Td";
-import InvoiceDropdown from "../../../../components/common/Dropdown/ActionsDropdown/InvoiceDropdown";
+import TableLayout from "../../../../components/common/Table/TableLayout";
+import TableHead from "../../../../components/common/Table/TableHead";
+import TableRow from "../../../../components/common/Table/TableRow";
+import TableEmptyState from "../../../../components/common/Table/TableEmptyState";
+import DateCell from "../../../../components/common/Cell/DateCell";
+import Td from "../../../../components/common/Table/Td";
+import { InvoiceDropdown } from "../../../../components/common/Dropdown/Dropdowns";
 
 // ── Invoice-specific status badge ────────────────────────────────────────────
 const INVOICE_STATUS_STYLES = {

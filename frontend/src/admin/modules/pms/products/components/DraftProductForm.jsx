@@ -11,7 +11,7 @@ import {
   ImagePlus,
 } from "lucide-react";
 
-import ImageUploadSection from "../../../../components/common/ImageUploadSection";
+import ImageUploadSection from "../../../../components/common/ImageUpload/ImageUploadSection";
 
 const DraftProductForm = () => {
   const { id: draftId } = useParams();

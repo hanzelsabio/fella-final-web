@@ -1,119 +1,89 @@
 import db from "../config/database.js";
+import { asyncHandler } from "../middleware/errorHandler.js";
 
 const generateFaqId = async () => {
-  const [rows] = await db.query(
+  const [rows] = await db.execute(
     "SELECT faq_id FROM faqs ORDER BY id DESC LIMIT 1",
   );
   if (rows.length === 0) return "FAQ-001";
-  const last = rows[0].faq_id;
-  const num = parseInt(last.replace("FAQ-", "")) + 1;
+  const num = parseInt(rows[0].faq_id.replace("FAQ-", "")) + 1;
   return `FAQ-${String(num).padStart(3, "0")}`;
 };
 
-export const getAllFaqs = async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      "SELECT * FROM faqs ORDER BY sort_order ASC, created_at ASC",
-    );
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to fetch FAQs" });
-  }
-};
+export const getAllFaqs = asyncHandler(async (req, res) => {
+  const [rows] = await db.execute(
+    "SELECT * FROM faqs ORDER BY sort_order ASC, created_at ASC",
+  );
+  res.json({ success: true, data: rows });
+});
 
-export const getActiveFaqs = async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      "SELECT * FROM faqs WHERE status = 'active' ORDER BY sort_order ASC, created_at ASC",
-    );
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to fetch FAQs" });
-  }
-};
+export const getActiveFaqs = asyncHandler(async (req, res) => {
+  const [rows] = await db.execute(
+    "SELECT * FROM faqs WHERE status = 'active' ORDER BY sort_order ASC, created_at ASC",
+  );
+  res.json({ success: true, data: rows });
+});
 
-export const createFaq = async (req, res) => {
-  try {
-    const { question, answer, sort_order } = req.body;
-    if (!question?.trim() || !answer?.trim())
-      return res
-        .status(400)
-        .json({ success: false, message: "Question and answer are required" });
+export const createFaq = asyncHandler(async (req, res) => {
+  const { question, answer, sort_order } = req.body;
+  if (!question?.trim() || !answer?.trim())
+    return res
+      .status(400)
+      .json({ success: false, message: "Question and answer are required" });
 
-    const faq_id = await generateFaqId();
-    const [result] = await db.query(
-      "INSERT INTO faqs (faq_id, question, answer, sort_order) VALUES (?, ?, ?, ?)",
-      [faq_id, question.trim(), answer.trim(), sort_order || 0],
-    );
-    res.status(201).json({
-      success: true,
-      message: "FAQ created successfully",
-      data: { id: result.insertId, faq_id },
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to create FAQ" });
-  }
-};
+  const faq_id = await generateFaqId();
+  const [result] = await db.execute(
+    "INSERT INTO faqs (faq_id, question, answer, sort_order) VALUES (?, ?, ?, ?)",
+    [faq_id, question.trim(), answer.trim(), sort_order || 0],
+  );
+  res.status(201).json({
+    success: true,
+    message: "FAQ created successfully",
+    data: { id: result.insertId, faq_id },
+  });
+});
 
-export const updateFaq = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { question, answer, sort_order } = req.body;
-    if (!question?.trim() || !answer?.trim())
-      return res
-        .status(400)
-        .json({ success: false, message: "Question and answer are required" });
+export const updateFaq = asyncHandler(async (req, res) => {
+  const { question, answer, sort_order } = req.body;
+  if (!question?.trim() || !answer?.trim())
+    return res
+      .status(400)
+      .json({ success: false, message: "Question and answer are required" });
 
-    const [result] = await db.query(
-      "UPDATE faqs SET question = ?, answer = ?, sort_order = ? WHERE id = ?",
-      [question.trim(), answer.trim(), sort_order || 0, id],
-    );
-    if (result.affectedRows === 0)
-      return res.status(404).json({ success: false, message: "FAQ not found" });
-    res.json({ success: true, message: "FAQ updated successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to update FAQ" });
-  }
-};
+  const [result] = await db.execute(
+    "UPDATE faqs SET question = ?, answer = ?, sort_order = ? WHERE id = ?",
+    [question.trim(), answer.trim(), sort_order || 0, req.params.id],
+  );
+  if (result.affectedRows === 0)
+    return res.status(404).json({ success: false, message: "FAQ not found" });
+  res.json({ success: true, message: "FAQ updated successfully" });
+});
 
-export const deleteFaq = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const [result] = await db.query("DELETE FROM faqs WHERE id = ?", [id]);
-    if (result.affectedRows === 0)
-      return res.status(404).json({ success: false, message: "FAQ not found" });
-    res.json({ success: true, message: "FAQ deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to delete FAQ" });
-  }
-};
+export const deleteFaq = asyncHandler(async (req, res) => {
+  const [result] = await db.execute("DELETE FROM faqs WHERE id = ?", [
+    req.params.id,
+  ]);
+  if (result.affectedRows === 0)
+    return res.status(404).json({ success: false, message: "FAQ not found" });
+  res.json({ success: true, message: "FAQ deleted successfully" });
+});
 
-export const archiveFaq = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const [result] = await db.query(
-      "UPDATE faqs SET status = 'archived' WHERE id = ?",
-      [id],
-    );
-    if (result.affectedRows === 0)
-      return res.status(404).json({ success: false, message: "FAQ not found" });
-    res.json({ success: true, message: "FAQ archived successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to archive FAQ" });
-  }
-};
+export const archiveFaq = asyncHandler(async (req, res) => {
+  const [result] = await db.execute(
+    "UPDATE faqs SET status = 'archived' WHERE id = ?",
+    [req.params.id],
+  );
+  if (result.affectedRows === 0)
+    return res.status(404).json({ success: false, message: "FAQ not found" });
+  res.json({ success: true, message: "FAQ archived successfully" });
+});
 
-export const restoreFaq = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const [result] = await db.query(
-      "UPDATE faqs SET status = 'active' WHERE id = ?",
-      [id],
-    );
-    if (result.affectedRows === 0)
-      return res.status(404).json({ success: false, message: "FAQ not found" });
-    res.json({ success: true, message: "FAQ restored successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to restore FAQ" });
-  }
-};
+export const restoreFaq = asyncHandler(async (req, res) => {
+  const [result] = await db.execute(
+    "UPDATE faqs SET status = 'active' WHERE id = ?",
+    [req.params.id],
+  );
+  if (result.affectedRows === 0)
+    return res.status(404).json({ success: false, message: "FAQ not found" });
+  res.json({ success: true, message: "FAQ restored successfully" });
+});

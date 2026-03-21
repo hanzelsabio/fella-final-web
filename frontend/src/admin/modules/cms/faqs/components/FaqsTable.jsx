@@ -5,13 +5,17 @@ import { useFaqs } from "../context/FaqsContext";
 import useBulkActions from "../../../../components/hooks/useBulkActions";
 import useCmsInlineEdit from "../../../../components/hooks/useCmsInlineEdit";
 import useCmsFilter from "../../../../components/hooks/useCmsFilter";
-import { STATUS_OPTIONS } from "../../../../components/common/tableConstants";
+import { STATUS_OPTIONS } from "../../../../components/common/Table/tableConstants";
 
-import TableHeader from "../../../../components/common/TableHeader";
-import CmsTableToolbar from "../../../../components/common/CmsTableToolbar";
+import TableHeader from "../../../../components/common/Table/TableHeader";
+import CmsTableToolbar from "../../../../components/common/Table/CmsTableToolbar";
 import StatusBadge from "../../../../components/common/StatusBadge";
-import InlineActionButtons from "../../../../components/common/InlineActionButtons";
-import BulkActionBar from "../../../../components/common/BulkActionBar";
+import InlineActionButtons from "../../../../components/common/Action/InlineActionButtons";
+import BulkActionBar from "../../../../components/common/Action/BulkActionBar";
+import {
+  TextPrimary,
+  Text,
+} from "../../../../../shared/components/ui/Typography";
 
 const FaqsTable = () => {
   const {
@@ -41,7 +45,6 @@ const FaqsTable = () => {
 
   const [selectedFaqs, setSelectedFaqs] = useState([]);
 
-  // ── Filter ──────────────────────────────────────────────────────
   const filtered = faqs.filter((f) => {
     const matchesSearch =
       f.question?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,7 +72,6 @@ const FaqsTable = () => {
       labels: { singular: "FAQ", plural: "FAQs" },
     });
 
-  // ── Row actions ──────────────────────────────────────────────────
   const handleAdd = async () => {
     if (!newForm.question.trim() || !newForm.answer.trim())
       return alert("Question and answer are required.");
@@ -108,6 +110,9 @@ const FaqsTable = () => {
       : archiveFaq(id));
     if (!result.success) alert("Failed: " + result.message);
   };
+
+  const INPUT_CLS =
+    "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm";
 
   return (
     <div className="pb-6">
@@ -169,7 +174,7 @@ const FaqsTable = () => {
                       placeholder="Enter question..."
                       rows={2}
                       autoFocus
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+                      className={INPUT_CLS}
                     />
                   </td>
                   <td className="px-4 py-4">
@@ -178,7 +183,7 @@ const FaqsTable = () => {
                       onChange={(e) => setNewField("answer", e.target.value)}
                       placeholder="Enter answer..."
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+                      className={INPUT_CLS}
                     />
                   </td>
                   <td className="px-4 py-4">
@@ -228,14 +233,18 @@ const FaqsTable = () => {
                           }
                           rows={2}
                           autoFocus
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+                          className={INPUT_CLS}
                         />
                       ) : (
-                        <p
-                          className={`text-sm font-medium ${faq.status === "archived" ? "text-gray-400 line-through" : "text-gray-900"}`}
+                        <TextPrimary
+                          className={
+                            faq.status === "archived"
+                              ? "line-through opacity-50"
+                              : ""
+                          }
                         >
                           {faq.question}
-                        </p>
+                        </TextPrimary>
                       )}
                     </td>
                     <td className="px-4 sm:px-6 py-5">
@@ -246,14 +255,18 @@ const FaqsTable = () => {
                             setEditField("answer", e.target.value)
                           }
                           rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
+                          className={INPUT_CLS}
                         />
                       ) : (
-                        <p
-                          className={`text-sm ${faq.status === "archived" ? "text-gray-400 line-through" : "text-gray-600"}`}
+                        <Text
+                          className={
+                            faq.status === "archived"
+                              ? "line-through opacity-50"
+                              : ""
+                          }
                         >
                           {faq.answer}
-                        </p>
+                        </Text>
                       )}
                     </td>
                     <td className="px-4 sm:px-6 py-5">

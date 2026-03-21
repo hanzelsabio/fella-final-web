@@ -1,5 +1,5 @@
 import { Search, Filter } from "lucide-react";
-import CustomDropdown from "./CustomDropdown";
+import CustomDropdown from "../Dropdown/CustomDropdown";
 
 /**
  * CmsTableToolbar

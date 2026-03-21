@@ -5,6 +5,12 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import { setupSecurity } from "./middleware/security.js";
+import {
+  globalErrorHandler,
+  notFoundHandler,
+} from "./middleware/errorHandler.js";
+
 import productRoutes from "./routes/products.js";
 import draftRoutes from "./routes/drafts.js";
 import serviceRoutes from "./routes/services.js";
@@ -34,15 +40,13 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+// ── 1. Security (replaces manual cors + bodyParser) ───────────────────────────
+setupSecurity(app);
 
-// Serve static files from uploads directory
+// ── 2. Static uploads ─────────────────────────────────────────────────────────
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Routes
+// ── 3. Routes ─────────────────────────────────────────────────────────────────
 app.use("/api/products", productRoutes);
 app.use("/api/drafts", draftRoutes);
 app.use("/api/services", serviceRoutes);
@@ -62,20 +66,10 @@ app.use("/api/about", aboutRoutes);
 app.use("/api/reviews", reviewsRoutes);
 app.use("/api/faqs", faqsRoutes);
 app.use("/api/contact", contactRoutes);
-app.use("/api", authRoutes);
+app.use("/api/auth", authRoutes);
 
-// Health check
-app.get("/api/health", (req, res) => {
-  res.json({ status: "OK", message: "Server is running" });
-});
+// ── 4. 404 + error handler (must be last) ────────────────────────────────────
+app.use(notFoundHandler);
+app.use(globalErrorHandler);
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ success: false, message: "Something went wrong!" });
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

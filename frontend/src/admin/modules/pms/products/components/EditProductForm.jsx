@@ -10,7 +10,7 @@ import {
   ImagePlus,
 } from "lucide-react";
 
-import ImageUploadSection from "../../../../components/common/ImageUploadSection";
+import ImageUploadSection from "../../../../components/common/ImageUpload/ImageUploadSection";
 import { uploadAPI, getImageUrl } from "../../../../../services";
 
 const EditProductForm = () => {
@@ -323,7 +323,7 @@ const EditProductForm = () => {
 
     if (result.success) {
       alert("Draft saved successfully!");
-      navigate("${basePath}/products/drafts");
+      navigate(`${basePath}/products/drafts`);
     } else {
       alert("Failed to save draft: " + result.message);
     }
@@ -407,7 +407,7 @@ const EditProductForm = () => {
 
       if (data.success) {
         alert("Product updated successfully!");
-        navigate("${basePath}/products");
+        navigate(`${basePath}/products`);
       } else {
         alert("Failed to update product: " + data.message);
       }

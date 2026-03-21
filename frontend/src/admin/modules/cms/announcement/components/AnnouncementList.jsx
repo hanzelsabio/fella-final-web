@@ -4,13 +4,13 @@ import { useAnnouncements } from "../context/AnnouncementContext";
 import useBulkActions from "../../../../components/hooks/useBulkActions";
 import useCmsInlineEdit from "../../../../components/hooks/useCmsInlineEdit";
 import useCmsFilter from "../../../../components/hooks/useCmsFilter";
-import { STATUS_OPTIONS } from "../../../../components/common/tableConstants";
+import { STATUS_OPTIONS } from "../../../../components/common/Table/tableConstants";
 
-import TableHeader from "../../../../components/common/TableHeader";
-import CmsTableToolbar from "../../../../components/common/CmsTableToolbar";
+import TableHeader from "../../../../components/common/Table/TableHeader";
+import CmsTableToolbar from "../../../../components/common/Table/CmsTableToolbar";
 import StatusBadge from "../../../../components/common/StatusBadge";
-import InlineActionButtons from "../../../../components/common/InlineActionButtons";
-import BulkActionBar from "../../../../components/common/BulkActionBar";
+import InlineActionButtons from "../../../../components/common/Action/InlineActionButtons";
+import BulkActionBar from "../../../../components/common/Action/BulkActionBar";
 import { useState } from "react";
 
 const AnnouncementList = () => {

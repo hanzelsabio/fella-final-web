@@ -2,7 +2,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useCategories } from "../context/CategoryContext";
 import { ChevronDown, Save, ArrowLeft } from "lucide-react";
-import SingleImageUpload from "../../../../components/common/SingleImageUpload";
+import SingleImageUpload from "../../../../components/common/ImageUpload/SingleImageUpload";
 
 const AddCategoryForm = () => {
   const { refreshData } = useCategories();

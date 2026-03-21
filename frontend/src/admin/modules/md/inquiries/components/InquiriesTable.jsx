@@ -7,13 +7,13 @@ import useBasePath from "../../../../components/hooks/useBasePath";
 import useTableSort from "../../../../components/hooks/useTableSort";
 import { usePaginatedTable } from "../../../../components/hooks/usePaginatedTable";
 
-import TableLayout from "../../../../components/common/TableLayout";
-import TableHead from "../../../../components/common/TableHead";
-import TableRow from "../../../../components/common/TableRow";
-import TableEmptyState from "../../../../components/common/TableEmptyState";
-import DateCell from "../../../../components/common/DateCell";
-import Td from "../../../../components/common/Td";
-import InquiryDropdown from "../../../../components/common/Dropdown/ActionsDropdown/InquiryDropdown.jsx";
+import TableLayout from "../../../../components/common/Table/TableLayout.jsx";
+import TableHead from "../../../../components/common/Table/TableHead.jsx";
+import TableRow from "../../../../components/common/Table/TableRow.jsx";
+import TableEmptyState from "../../../../components/common/Table/TableEmptyState.jsx";
+import DateCell from "../../../../components/common/Cell/DateCell.jsx";
+import Td from "../../../../components/common/Table/Td.jsx";
+import { InquiryDropdown } from "../../../../components/common/Dropdown/Dropdowns.jsx";
 
 // ── Inquiry-specific badges ──────────────────────────────────────────────────
 const INQUIRY_STATUS_STYLES = {

@@ -5,12 +5,12 @@ import { uploadAPI, getImageUrl } from "../../../../../services";
 
 import useBulkActions from "../../../../components/hooks/useBulkActions";
 import useCmsFilter from "../../../../components/hooks/useCmsFilter";
-import { STATUS_OPTIONS } from "../../../../components/common/tableConstants";
+import { STATUS_OPTIONS } from "../../../../components/common/Table/tableConstants";
 
-import TableHeader from "../../../../components/common/TableHeader";
-import CmsTableToolbar from "../../../../components/common/CmsTableToolbar";
+import TableHeader from "../../../../components/common/Table/TableHeader";
+import CmsTableToolbar from "../../../../components/common/Table/CmsTableToolbar";
 import StatusBadge from "../../../../components/common/StatusBadge";
-import BulkActionBar from "../../../../components/common/BulkActionBar";
+import BulkActionBar from "../../../../components/common/Action/BulkActionBar";
 
 const WorksDetails = () => {
   const { works, loading, addWork, deleteWork, archiveWork, restoreWork } =

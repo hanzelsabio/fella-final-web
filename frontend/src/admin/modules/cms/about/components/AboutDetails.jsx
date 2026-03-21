@@ -2,13 +2,25 @@ import { useState, useEffect, useRef } from "react";
 import { Save, ImagePlus, X } from "lucide-react";
 import { uploadAPI, getImageUrl } from "../../../../../services";
 import api from "../../../../../services/api";
-import TableHeader from "../../../../components/common/TableHeader";
+
+import TableHeader from "../../../../components/common/Table/TableHeader";
+import Card from "../../../../../shared/components/ui/Card";
+import {
+  FormField,
+  Input,
+  Textarea,
+} from "../../../../../shared/components/ui/Inputs";
+import {
+  BtnPrimary,
+  BtnGhost,
+} from "../../../../../shared/components/ui/Buttons";
+import { Text } from "../../../../../shared/components/ui/Typography";
 
 const AboutDetails = () => {
   const [heading, setHeading] = useState("");
   const [subheading, setSubheading] = useState("");
   const [body, setBody] = useState("");
-  const [image, setImage] = useState(null); // { file, preview }
+  const [image, setImage] = useState(null);
   const [existingImage, setExistingImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -70,9 +82,9 @@ const AboutDetails = () => {
   if (loading) {
     return (
       <div className="pb-6">
-        <div className="border border-gray-200 bg-white rounded-lg p-6 text-center text-sm text-gray-400">
-          Loading...
-        </div>
+        <Card>
+          <Text>Loading...</Text>
+        </Card>
       </div>
     );
   }
@@ -86,8 +98,7 @@ const AboutDetails = () => {
         subtitle="Edit the content displayed on the About section of your website."
       />
 
-      {/* Form */}
-      <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 space-y-6">
+      <Card variant="section">
         {message && (
           <p
             className={`text-xs font-medium ${message.type === "success" ? "text-green-600" : "text-red-500"}`}
@@ -96,12 +107,7 @@ const AboutDetails = () => {
           </p>
         )}
 
-        {/* Image */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            Background Image{" "}
-            <span className="text-gray-400 font-normal">(Optional)</span>
-          </label>
+        <FormField label="Background Image" optional>
           {previewSrc ? (
             <div className="flex items-center gap-4">
               <div className="relative flex-shrink-0">
@@ -119,12 +125,9 @@ const AboutDetails = () => {
                   </button>
                 )}
               </div>
-              <button
-                onClick={() => imageInputRef.current?.click()}
-                className="text-xs text-blue-500 hover:text-blue-600"
-              >
+              <BtnGhost onClick={() => imageInputRef.current?.click()}>
                 Change image
-              </button>
+              </BtnGhost>
             </div>
           ) : (
             <button
@@ -142,57 +145,36 @@ const AboutDetails = () => {
             className="hidden"
             onChange={handleImageChange}
           />
-        </div>
+        </FormField>
 
-        {/* Heading */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            Heading <span className="text-red-500">*</span>
-          </label>
-          <input
+        <FormField label="Heading" required>
+          <Input
             type="text"
             value={heading}
             onChange={(e) => setHeading(e.target.value)}
             placeholder="e.g. Quality Prints. Crafted With Purpose."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
           />
-        </div>
+        </FormField>
 
-        {/* Subheading */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            Subheading{" "}
-            <span className="text-gray-400 font-normal">(Optional)</span>
-          </label>
-          <textarea
+        <FormField label="Subheading" optional>
+          <Textarea
             value={subheading}
             onChange={(e) => setSubheading(e.target.value)}
             placeholder="e.g. We specialize in custom clothing printing..."
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
           />
-        </div>
+        </FormField>
 
-        {/* Body */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            Body Text{" "}
-            <span className="text-gray-400 font-normal">(Optional)</span>
-          </label>
-          <textarea
+        <FormField label="Body Text" optional>
+          <Textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="e.g. Fella Screen Prints is a service that..."
             rows={5}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
           />
-        </div>
+        </FormField>
 
-        {/* Live Preview */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            Preview
-          </label>
+        <FormField label="Preview">
           <div
             className="relative rounded-lg overflow-hidden min-h-[160px] flex items-center justify-center"
             style={{
@@ -213,23 +195,16 @@ const AboutDetails = () => {
               )}
             </div>
           </div>
-        </div>
-      </div>
+        </FormField>
+      </Card>
 
-      {/* Sticky save bar */}
       <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-gray-200 bg-white shadow-lg px-4 py-5">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
-          <p className="text-xs text-gray-500">
-            Save your changes to update the About section.
-          </p>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex items-center gap-2 disabled:opacity-50"
-          >
+          <Text>Save your changes to update the About section.</Text>
+          <BtnPrimary onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4" />
             <span>{saving ? "Saving..." : "Save Changes"}</span>
-          </button>
+          </BtnPrimary>
         </div>
       </div>
     </div>

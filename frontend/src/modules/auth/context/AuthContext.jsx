@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
 
   // Admin auth
   const adminLogin = async (email, password) => {
-    const res = await fetch("/api/admin/login", {
+    const res = await fetch("/api/auth/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
   // Staff auth
   const staffLogin = async (email, password) => {
-    const res = await fetch("/api/staff/login", {
+    const res = await fetch("/api/auth/staff/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),

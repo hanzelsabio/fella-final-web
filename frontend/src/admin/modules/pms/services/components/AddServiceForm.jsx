@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useServices } from "../context/ServiceContext";
 import { Save, ArrowLeft } from "lucide-react";
-import SingleImageUpload from "../../../../components/common/SingleImageUpload";
+import SingleImageUpload from "../../../../components/common/ImageUpload/SingleImageUpload";
 
 const AddServiceForm = () => {
   const { refreshData } = useServices();

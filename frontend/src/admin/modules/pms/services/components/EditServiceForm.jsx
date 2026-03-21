@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useServices } from "../context/ServiceContext";
 import { Save, ArrowLeft } from "lucide-react";
-import SingleImageUpload from "../../../../components/common/SingleImageUpload";
+import SingleImageUpload from "../../../../components/common/ImageUpload/SingleImageUpload";
 
 const EditServiceForm = () => {
   const { id } = useParams();

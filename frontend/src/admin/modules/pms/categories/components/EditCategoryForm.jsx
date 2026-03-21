@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useCategories } from "../context/CategoryContext";
 import { Save, ArrowLeft } from "lucide-react";
-import SingleImageUpload from "../../../../components/common/SingleImageUpload";
+import SingleImageUpload from "../../../../components/common/ImageUpload/SingleImageUpload";
 
 const EditCategoryForm = () => {
   const { id } = useParams();

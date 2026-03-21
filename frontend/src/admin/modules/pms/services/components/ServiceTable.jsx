@@ -7,18 +7,18 @@ import useBulkActions from "../../../../components/hooks/useBulkActions";
 import useTableFilter from "../../../../components/hooks/useTableFilter";
 import useTableSort from "../../../../components/hooks/useTableSort";
 import { usePaginatedTable } from "../../../../components/hooks/usePaginatedTable";
-import { STATUS_OPTIONS } from "../../../../components/common/tableConstants";
+import { STATUS_OPTIONS } from "../../../../components/common/Table/tableConstants";
 
-import TableHeader from "../../../../components/common/TableHeader";
-import TableLayout from "../../../../components/common/TableLayout";
-import TableHead from "../../../../components/common/TableHead";
-import TableRow from "../../../../components/common/TableRow";
-import Td from "../../../../components/common/Td";
+import TableHeader from "../../../../components/common/Table/TableHeader";
+import TableLayout from "../../../../components/common/Table/TableLayout";
+import TableHead from "../../../../components/common/Table/TableHead";
+import TableRow from "../../../../components/common/Table/TableRow";
+import Td from "../../../../components/common/Table/Td";
 import StatusBadge from "../../../../components/common/StatusBadge";
-import TableEmptyState from "../../../../components/common/TableEmptyState";
-import DateCell from "../../../../components/common/DateCell";
+import TableEmptyState from "../../../../components/common/Table/TableEmptyState";
+import DateCell from "../../../../components/common/Cell/DateCell";
 import ServerImage from "../../../../components/common/ServerImage";
-import ServiceDropdown from "../../../../components/common/Dropdown/ActionsDropdown/ServiceDropdown";
+import { ServiceDropdown } from "../../../../components/common/Dropdown/Dropdowns";
 
 const COLUMNS = [
   { label: "Service", column: "name", minWidth: "min-w-[250px]" },

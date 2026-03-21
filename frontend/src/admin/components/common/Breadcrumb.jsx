@@ -1,8 +1,8 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import useBasePath from "../hooks/useBasePath";
 
 const Breadcrumb = ({ title }) => {
-  const location = useLocation();
-  const basePath = location.pathname.startsWith("/staff") ? "/staff" : "/admin";
+  const basePath = useBasePath();
 
   return (
     <div className="flex h-18 items-center justify-between">

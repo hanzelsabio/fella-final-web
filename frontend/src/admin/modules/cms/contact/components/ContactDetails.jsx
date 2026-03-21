@@ -1,7 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { Save, Plus, Trash2, GripVertical } from "lucide-react";
 import api from "../../../../../services/api";
-import TableHeader from "../../../../components/common/TableHeader";
+
+import TableHeader from "../../../../components/common/Table/TableHeader";
+import Card from "../../../../../shared/components/ui/Card";
+import { Input, Textarea } from "../../../../../shared/components/ui/Inputs";
+import { BtnPrimary } from "../../../../../shared/components/ui/Buttons";
+import {
+  SectionTitle,
+  Text,
+  TextMuted,
+  Label,
+} from "../../../../../shared/components/ui/Typography";
 
 const PLATFORM_OPTIONS = [
   "Facebook",
@@ -13,12 +23,6 @@ const PLATFORM_OPTIONS = [
   "Pinterest",
   "Threads",
   "Custom",
-];
-
-const STATUS_OPTIONS = [
-  { value: "all", label: "All Status" },
-  { value: "active", label: "Active" },
-  { value: "archived", label: "Archived" },
 ];
 
 const ContactDetails = () => {
@@ -68,20 +72,17 @@ const ContactDetails = () => {
 
   const handleChange = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
-
   const addSocialLink = () =>
     setSocialLinks((prev) => [
       ...prev,
       { id: `${Date.now()}`, platform: "Facebook", url: "", text: "" },
     ]);
-
   const updateSocialLink = (id, key, value) =>
     setSocialLinks((prev) =>
-      prev.map((link) => (link.id === id ? { ...link, [key]: value } : link)),
+      prev.map((l) => (l.id === id ? { ...l, [key]: value } : l)),
     );
-
   const removeSocialLink = (id) =>
-    setSocialLinks((prev) => prev.filter((link) => link.id !== id));
+    setSocialLinks((prev) => prev.filter((l) => l.id !== id));
 
   const handleSave = async () => {
     setSaving(true);
@@ -103,8 +104,10 @@ const ContactDetails = () => {
 
   if (loading) {
     return (
-      <div className="border border-gray-200 bg-white rounded-lg p-6 text-center text-sm text-gray-400">
-        Loading...
+      <div className="pb-6">
+        <Card>
+          <Text>Loading...</Text>
+        </Card>
       </div>
     );
   }
@@ -133,18 +136,15 @@ const ContactDetails = () => {
       )}
 
       {/* Social Links */}
-      <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
-        <div className="mb-2">
-          <h3 className="text-sm font-semibold text-gray-800">Social Links</h3>
-          <p className="text-xs text-gray-500">
-            Add, edit, or remove social media accounts shown on your contact
-            page.
-          </p>
-        </div>
+      <Card>
+        <SectionTitle>Social Links</SectionTitle>
+        <TextMuted className="mt-1 mb-4">
+          Add, edit, or remove social media accounts shown on your contact page.
+        </TextMuted>
 
         {socialLinks.length === 0 ? (
-          <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg mt-4">
-            <p className="text-sm text-gray-400">No social links yet.</p>
+          <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+            <Text>No social links yet.</Text>
             <button
               onClick={addSocialLink}
               className="mt-2 text-xs text-blue-500 hover:text-blue-600"
@@ -153,7 +153,7 @@ const ContactDetails = () => {
             </button>
           </div>
         ) : (
-          <div className="space-y-3 mt-4">
+          <div className="space-y-3">
             <div className="hidden md:grid grid-cols-12 gap-3 px-2">
               <div className="col-span-1" />
               <p className="col-span-3 text-xs font-medium text-gray-500 uppercase">
@@ -177,9 +177,7 @@ const ContactDetails = () => {
                   <GripVertical className="w-4 h-4 text-gray-400" />
                 </div>
                 <div className="md:col-span-3">
-                  <label className="block text-xs font-medium text-gray-600 mb-1 md:hidden">
-                    Platform
-                  </label>
+                  <Label className="md:hidden">Platform</Label>
                   <select
                     value={link.platform}
                     onChange={(e) =>
@@ -195,31 +193,23 @@ const ContactDetails = () => {
                   </select>
                 </div>
                 <div className="md:col-span-4">
-                  <label className="block text-xs font-medium text-gray-600 mb-1 md:hidden">
-                    URL
-                  </label>
-                  <input
-                    type="text"
+                  <Label className="md:hidden">URL</Label>
+                  <Input
                     value={link.url}
                     onChange={(e) =>
                       updateSocialLink(link.id, "url", e.target.value)
                     }
                     placeholder="https://..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
                   />
                 </div>
                 <div className="md:col-span-3">
-                  <label className="block text-xs font-medium text-gray-600 mb-1 md:hidden">
-                    Display Text
-                  </label>
-                  <input
-                    type="text"
+                  <Label className="md:hidden">Display Text</Label>
+                  <Input
                     value={link.text}
                     onChange={(e) =>
                       updateSocialLink(link.id, "text", e.target.value)
                     }
                     placeholder="@yourhandle"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
                   />
                 </div>
                 <div className="md:col-span-1 flex justify-end md:justify-center">
@@ -235,83 +225,63 @@ const ContactDetails = () => {
             ))}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Contact Info */}
-      <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">
-          Contact Info
-        </h3>
+      <Card>
+        <SectionTitle className="mb-4">Contact Info</SectionTitle>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Mobile Number
-            </label>
-            <input
-              type="text"
+            <Label>Mobile Number</Label>
+            <Input
               value={form.mobile}
               onChange={(e) => handleChange("mobile", e.target.value)}
               placeholder="+639876543210"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
-            <input
-              type="text"
+            <Label>Email Address</Label>
+            <Input
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
               placeholder="yourmail@gmail.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
             />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Location & Map */}
-      <div className="border border-gray-200 bg-white rounded-lg p-4 sm:p-6 mb-4">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">
-          Location & Map
-        </h3>
+      <Card>
+        <SectionTitle className="mb-4">Location & Map</SectionTitle>
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Location Text
-              </label>
-              <textarea
+              <Label>Location Text</Label>
+              <Textarea
                 value={form.location_text}
                 onChange={(e) => handleChange("location_text", e.target.value)}
                 placeholder="e.g. Upper Plaza 16-H A.Mabini St Makati City..."
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Google Maps Embed URL
-              </label>
-              <textarea
+              <Label>Google Maps Embed URL</Label>
+              <Textarea
                 value={form.map_embed_url}
                 onChange={(e) => handleChange("map_embed_url", e.target.value)}
                 placeholder="Paste the src URL from the Google Maps embed code..."
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-sm"
               />
-              <p className="text-xs text-gray-400 mt-1">
+              <TextMuted className="mt-1">
                 In Google Maps → Share → Embed a map → copy only the{" "}
                 <code className="bg-gray-100 px-1 rounded">src="..."</code>{" "}
                 value.
-              </p>
+              </TextMuted>
             </div>
           </div>
           {form.map_embed_url && (
             <div>
-              <p className="text-xs font-medium text-gray-700 mb-2">
-                Map Preview
-              </p>
+              <Label>Map Preview</Label>
               <iframe
                 title="map preview"
                 src={form.map_embed_url}
@@ -326,21 +296,17 @@ const ContactDetails = () => {
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
-      {/* Sticky save bar — visible only when changes detected */}
+      {/* Sticky save bar */}
       {hasChanges() && (
         <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-gray-200 bg-white shadow-lg px-4 py-5">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
-            <p className="text-xs text-gray-500">You have unsaved changes.</p>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="bg-black hover:bg-gray-800 text-white text-xs rounded-md px-4 py-3 transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
+            <Text>You have unsaved changes.</Text>
+            <BtnPrimary onClick={handleSave} disabled={saving}>
               <Save className="w-4 h-4" />
               <span>{saving ? "Saving..." : "Save Changes"}</span>
-            </button>
+            </BtnPrimary>
           </div>
         </div>
       )}

@@ -7,15 +7,15 @@ import useBasePath from "../../../../components/hooks/useBasePath";
 import useTableSort from "../../../../components/hooks/useTableSort";
 import { usePaginatedTable } from "../../../../components/hooks/usePaginatedTable";
 
-import TableHeader from "../../../../components/common/TableHeader";
-import TableLayout from "../../../../components/common/TableLayout";
-import TableHead from "../../../../components/common/TableHead";
-import TableRow from "../../../../components/common/TableRow";
-import Td from "../../../../components/common/Td";
-import TableEmptyState from "../../../../components/common/TableEmptyState";
-import DateCell from "../../../../components/common/DateCell";
-import ThumbnailCell from "../../../../components/common/ThumbnailCell";
-import DraftDropdown from "../../../../components/common/Dropdown/ActionsDropdown/DraftDropdown";
+import TableHeader from "../../../../components/common/Table/TableHeader";
+import TableLayout from "../../../../components/common/Table/TableLayout";
+import TableHead from "../../../../components/common/Table/TableHead";
+import TableRow from "../../../../components/common/Table/TableRow";
+import Td from "../../../../components/common/Table/Td";
+import TableEmptyState from "../../../../components/common/Table/TableEmptyState";
+import DateCell from "../../../../components/common/Cell/DateCell";
+import ThumbnailCell from "../../../../components/common/Cell/ThumbnailCell";
+import { DraftDropdown } from "../../../../components/common/Dropdown/Dropdowns";
 
 // ── Draft-specific helpers ───────────────────────────────────────────────────
 const formatTimeAgo = (timestamp) => {
